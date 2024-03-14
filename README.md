@@ -2,10 +2,10 @@
 
 # `deepHSI`: A Deep Learning Toolbox for Hyperspectral Imaging
 
-<!-- Badges -->
-![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-![PyTorch Version](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org)
-![PyTorch Lightning](https://img.shields.io/badge/Lightning-2.0+-792ee5?logo=pytorchlightning&logoColor=white)](https://www.pytorchlightning.ai/)
+<!-- Python Version Badge -->
+[![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
+[![PyTorch Version](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org)
+[![PyTorch Lightning](https://img.shields.io/badge/Lightning-2.0+-792ee5?logo=pytorchlightning&logoColor=white)](https://www.pytorchlightning.ai/)
 
 </div>
 
