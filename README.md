@@ -41,6 +41,56 @@ conda env create -f environment.yml
 conda activate deepHSI
 ```
 
+## Complete Workflow for `deepHSI`
+
+The `deepHSI` toolbox streamlines the process of using deep learning for hyperspectral imaging. The workflow is divided into key stages, each with dedicated components and functionalities.
+
+### 1. Data Handling
+
+Start by preparing your hyperspectral imaging data. `deepHSI` provides a flexible framework for integrating custom datasets.
+
+- **Custom Dataset Class**: Implement your dataset as a PyTorch `Dataset`. See the [data/mnist_datamodule.py](src/data/mnist_datamodule.py) as an example.
+- **Data Module**: Leverage PyTorch Lightning's `DataModule` to organize your training, validation, and test data splits. Refer to our [MNIST DataModule](src/data/mnist_datamodule.py) for a template.
+
+### 2. Model Development
+
+Develop your model architecture tailored for hyperspectral data analysis.
+
+- **Defining Models**: Create models by extending `torch.nn.Module`. Check out [src/models/mnist_module.py](src/models/mnist_module.py) for a basic structure.
+- **Configuration**: Utilize Hydra to configure model parameters dynamically. Example configuration can be found in [configs/model/mnist.yaml](configs/model/mnist.yaml).
+
+### 3. Testing and Validation
+
+Ensure the robustness of your models and data handling through thorough testing.
+
+- **Unit Tests**: Write tests for your custom dataset classes and model functionalities.
+- **Validation**: Use the validation split to tune model hyperparameters and prevent overfitting.
+
+### 4. Training Configuration
+
+Configure your training process with Hydra to seamlessly switch between different setups.
+
+- **Main Configuration**: Centralize your training configurations in [configs/train.yaml](configs/train.yaml). This includes model selection, data module parameters, training routines, and more.
+- **Experiment-Specific Configs**: For specific experiments, create override configurations in [configs/experiment](configs/experiment). This allows for easy experimentation with different hyperparameters.
+
+### 5. Running Experiments
+
+Execute your training runs with the flexibility to switch between configurations and models.
+
+- **Training**: Initiate training with `python train.py`. Override configurations as needed directly via command line arguments, e.g., `python train.py model=your_model`.
+- **Hyperparameter Tuning**: Leverage Hydra's capabilities for hyperparameter optimization. Configure your sweeps in [configs/hparams_search](configs/hparams_search).
+
+### 6. Evaluation
+
+After training, evaluate your models on the test dataset to assess their performance.
+
+- **Evaluation Script**: Use the provided evaluation script `src/eval.py` with the desired model checkpoint to evaluate on the test set.
+
+This workflow ensures a modular and configurable approach to deep learning with hyperspectral imaging, making `deepHSI` a versatile toolbox for researchers and practitioners.
+
+
+
+
 ## **Getting Started**
 
 ### Training a Model
