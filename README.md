@@ -7,6 +7,10 @@
 <!-- Python Version Badge -->
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
 
+<!-- Pre-commit Badge -->
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+
+
 </div>
 
 ## **Overview**
