@@ -1,4 +1,13 @@
+<div align="center">
+
+
 # `deepHSI`: A Deep Learning Toolbox for Hyperspectral Imaging
+
+
+<!-- Python Version Badge -->
+[![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
+
+</div>
 
 ## **Overview**
 `deepHSI` is an advanced toolbox designed for leveraging deep learning in the analysis and processing of hyperspectral images. Developed with PyTorch Lightning and configured through Hydra, it offers a scalable and modular framework for researchers and practitioners working with hyperspectral data.
