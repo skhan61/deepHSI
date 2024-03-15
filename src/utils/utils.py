@@ -1,12 +1,37 @@
+import os
 import warnings
 from importlib.util import find_spec
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from omegaconf import DictConfig
+from scipy.io import loadmat
 
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
+
+
+import os
+
+import matplotlib.pyplot as plt  # plt.imread can be used for TIFF files
+import spectral
+from scipy import io  # For io.loadmat
+
+
+def open_file(dataset):
+    _, ext = os.path.splitext(dataset)
+    ext = ext.lower()
+    if ext == ".mat":
+        # Load Matlab array
+        return io.loadmat(dataset)
+    elif ext in (".tif", ".tiff"):
+        # Load TIFF file using matplotlib's imread
+        return plt.imread(dataset)
+    elif ext == ".hdr":
+        img = spectral.open_image(dataset)
+        return img.load()
+    else:
+        raise ValueError(f"Unknown file format: {ext}")
 
 
 def extras(cfg: DictConfig) -> None:

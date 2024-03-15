@@ -1,27 +1,6 @@
 # # Same as `code-quality-pr.yaml` but triggered on commit to main branch
 # # and runs on all files (instead of only the changed ones)
 
-# name: Code Quality Main
-
-# on:
-#   push:
-#     branches: [main]
-
-# jobs:
-#   code-quality:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
-
-#       - name: Set up Python
-#         uses: actions/setup-python@v2
-
-#       - name: Run pre-commits
-#         uses: pre-commit/action@v2.0.3
-
-
 name: Code Quality Main
 
 on:
@@ -34,10 +13,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3  # Updated to v3
+        uses: actions/checkout@v3 # Updated to v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4  # Updated to v4
+        uses: actions/setup-python@v4 # Updated to v4
 
       - name: Install dependencies
         run: |
@@ -47,4 +26,4 @@ jobs:
       - name: Run pre-commits on all files
         uses: pre-commit/action@v2.0.3
         with:
-          extra_args: --all-files  # This ensures pre-commit checks run on all files, not just the changed ones
+          extra_args: --all-files # This ensures pre-commit checks run on all files, not just the changed ones
