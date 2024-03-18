@@ -75,7 +75,7 @@ nvidia-nccl-cu12==2.19.3
 nvidia-nvjitlink-cu12==12.4.99
 nvidia-nvtx-cu12==12.1.105
 omegaconf==2.3.0
-optuna==2.10.1
+optuna==3.5.0
 packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1710075952259/work
 parso @ file:///home/conda/feedstock_root/build_artifacts/parso_1638334955874/work
 pbr==6.0.0
