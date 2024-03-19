@@ -4,18 +4,27 @@ from pathlib import Path
 import pytest
 import torch
 
-from src.dataset.hyperspectral_datamodule import (PaviaUDataModule,
-                                                  SalinasDataModule)
+from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
+
+#   SalinasDataModule)
 
 
 @pytest.mark.parametrize("DataModule, dataset_name, hyperparams", [
     (SalinasDataModule, "Salinas", {
         "patch_size": 5, "center_pixel": True, "supervision": "full"}),
     (PaviaUDataModule, "PaviaU", {
-        "patch_size": 7, "center_pixel": False, "supervision": "semi"})
+        "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
+    (PaviaCDataModule, "PaviaC", {
+        "patch_size": 5, "center_pixel": True, "supervision": "full"}),
+    (KSCDataModule, "KSC", {
+        "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
+    (IndianPinesDataModule, "IndianPines", {
+        "patch_size": 5, "center_pixel": True, "supervision": "full"}),
+    (BotswanaDataModule, "Botswana", {
+        "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
 ])
 def test_hyperspectral_datamodule(DataModule, dataset_name, hyperparams):
-    data_dir = Path("/tmp") / dataset_name
+    data_dir = Path("/home/sayem/Desktop/deepHSI/temp/") / dataset_name
 
     # Use the batch_size variable directly instead of accessing it from hyperparams
     batch_size = 32

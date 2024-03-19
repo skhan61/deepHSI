@@ -50,8 +50,29 @@ class SalinasDataModule(BaseHyperspectralDataModule):
         super().__init__(data_dir, "Salinas", batch_size,
                          patch_size, transform, hyperparams=kwargs)
 
-
 class PaviaUDataModule(BaseHyperspectralDataModule):
     def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
         super().__init__(data_dir, "PaviaU", batch_size,
                          patch_size, transform, hyperparams=kwargs)
+
+class PaviaCDataModule(BaseHyperspectralDataModule):
+    def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
+        super().__init__(data_dir, "PaviaC", batch_size,
+                         patch_size, transform, hyperparams=kwargs)
+
+class KSCDataModule(BaseHyperspectralDataModule):
+    def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
+        super().__init__(data_dir, "KSC", batch_size,
+                         patch_size, transform, hyperparams=kwargs)
+
+class IndianPinesDataModule(BaseHyperspectralDataModule):
+    def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
+        super().__init__(data_dir, "IndianPines", batch_size,
+                         patch_size, transform, hyperparams=kwargs)
+
+class BotswanaDataModule(BaseHyperspectralDataModule):
+    def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
+        super().__init__(data_dir, "Botswana", batch_size,
+                         patch_size, transform, hyperparams=kwargs)
+
+# Add other dataset classes here following the same pattern...
