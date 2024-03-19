@@ -34,7 +34,8 @@ class TqdmUpTo(tqdm):
         self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
 
-def download_dataset(dataset_name, target_folder="./", datasets=DATASETS_CONFIG):
+def download_dataset(dataset_name, target_folder="./",
+                     datasets=DATASETS_CONFIG):
     if dataset_name not in datasets.keys():
         raise ValueError(f"{dataset_name} dataset is unknown.")
 
