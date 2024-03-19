@@ -90,49 +90,9 @@ class HyperspectralDataset(Dataset):
             # Extract the label of the center pixel
             center = self.patch_size // 2
             label = label[center, center].item()  # Convert to scalar
-
-        # # Remove unused dimensions when we work with invidual spectrums
-        # elif self.patch_size == 1:
-        #     data = data[:, 0, 0]
-        #     label = label[0, 0]
-
         # Add a fourth dimension for 3D CNN
         if self.patch_size > 1:
             # Make 4D data ((Batch x) Planes x Channels x Width x Height)
             data = data.unsqueeze(0)
 
         return data, label
-
-    # def __getitem__(self, i):
-    #     x, y = self.indices[i]
-    #     x1, y1 = x - self.patch_size // 2, y - self.patch_size // 2
-    #     x2, y2 = x1 + self.patch_size, y1 + self.patch_size
-
-    #     data = self.data[x1:x2, y1:y2]
-    #     label = self.label[x1:x2, y1:y2]
-
-    #     # Copy the data into numpy arrays (PyTorch doesn't like numpy views)
-    #     data = np.asarray(np.copy(data).transpose((2, 0, 1)), dtype="float32")
-    #     label = np.asarray(np.copy(label), dtype="int64")
-    #     # Load the data into PyTorch tensors
-    #     data = torch.from_numpy(data)
-    #     label = torch.from_numpy(label)
-
-    #     # Apply transformations if provided
-    #     if self.transform:
-    #         data = self.transform(data_patch)
-
-    #     # Extract the center label if needed
-    #     if self.center_pixel and self.patch_size > 1:
-    #         label = label[self.patch_size // 2, self.patch_size // 2]
-
-    #     # Remove unused dimensions when we work with invidual spectrums
-    #     elif self.patch_size == 1:
-    #         data = data[:, 0, 0]
-    #         label = label[0, 0]
-
-    #     # Add a fourth dimension for 3D CNN
-    #     if self.patch_size > 1:
-    #         # Make 4D data ((Batch x) Planes x Channels x Width x Height)
-    #         data = data.unsqueeze(0)
-    #     return data, label
