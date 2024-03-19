@@ -24,7 +24,7 @@ from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
         "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
 ])
 def test_hyperspectral_datamodule(DataModule, dataset_name, hyperparams):
-    data_dir = Path("/home/sayem/Desktop/deepHSI/temp/") / dataset_name
+    data_dir = Path("/home/sayem/Desktop/deepHSI/temp/")
 
     # Use the batch_size variable directly instead of accessing it from hyperparams
     batch_size = 32
