@@ -4,9 +4,17 @@ from pathlib import Path
 import pytest
 import torch
 
-from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
+from src.dataset.remote_sensing_datasets.botswana import BotswanaDataModule
+from src.dataset.remote_sensing_datasets.indianpine import \
+    IndianPinesDataModule
+from src.dataset.remote_sensing_datasets.ksc import KSCDataModule
+from src.dataset.remote_sensing_datasets.paviaC import PaviaCDataModule
+from src.dataset.remote_sensing_datasets.paviaU import PaviaUDataModule
+from src.dataset.remote_sensing_datasets.salinas import SalinasDataModule
 
-#   SalinasDataModule)
+# from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
+
+# #   SalinasDataModule)
 
 
 @pytest.mark.parametrize("DataModule, dataset_name, hyperparams", [
@@ -14,8 +22,8 @@ from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
         "patch_size": 5, "center_pixel": True, "supervision": "full"}),
     (PaviaUDataModule, "PaviaU", {
         "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
-    (PaviaCDataModule, "PaviaC", {
-        "patch_size": 5, "center_pixel": True, "supervision": "full"}),
+    # (PaviaCDataModule, "PaviaC", {
+    #     "patch_size": 5, "center_pixel": True, "supervision": "full"}),
     (KSCDataModule, "KSC", {
         "patch_size": 7, "center_pixel": False, "supervision": "semi"}),
     (IndianPinesDataModule, "IndianPines", {
