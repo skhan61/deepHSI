@@ -2,7 +2,9 @@
 
 import os
 
+import requests
 from tqdm import tqdm
+from zenodo_get import zenodo_get
 
 try:
     from urllib.request import urlretrieve
@@ -34,6 +36,28 @@ class TqdmUpTo(tqdm):
         self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
 
+def download_from_zenodo(doi, target_folder):
+    """
+    Downloads files from a given Zenodo DOI to a specified target
+    folder using the zenodo_get package.
+
+    Args:
+    - doi (list): The DOI(s) of the Zenodo record(s) to download, as a list.
+    - target_folder (str): The directory path where files should be saved.
+    """
+
+    # # Ensure the target directory exists
+    # if not os.path.exists(target_folder):
+    #     os.makedirs(target_folder)
+
+    # Prepare the arguments as if they were command-line arguments
+    args = ['--output-dir', target_folder] + [doi]
+    # print(args)
+
+    # Use the zenodo_get package to download files, passing the arguments as a single list
+    zenodo_get(args)
+
+
 def download_dataset(dataset_name, target_folder="./",
                      datasets=DATASETS_CONFIG):
     if dataset_name not in datasets.keys():
@@ -54,8 +78,8 @@ def download_dataset(dataset_name, target_folder="./",
                     urlretrieve(url, filename=filepath, reporthook=t.update_to)
     else:
         if not os.path.isdir(folder):
-            raise FileNotFoundError(f"The directory for {
-                                    dataset_name} does not exist, and the dataset is not set to be downloadable.")
+            raise FileNotFoundError(f"The directory for \
+                {dataset_name} does not exist, and the dataset is not set to be downloadable.")
 
 
 def load_dataset(dataset_name, target_folder="./", datasets=DATASETS_CONFIG):
