@@ -16,6 +16,66 @@ from src.dataset.hyperspectral_datamodule import BaseHyperspectralDataModule
 
 
 class BloodDetectionHSIDataModule(BaseHyperspectralDataModule):
+    """
+    A data module for handling the "Blood Detection in Hyperspectral Images" dataset within a
+    PyTorch Lightning workflow. This dataset is aimed at facilitating the development of
+    machine learning algorithms for hyperspectral blood detection.
+
+    The dataset consists of 14 hyperspectral images capturing mock-up scenes with blood and
+    visually similar substances under varying conditions. It serves as a challenging testbed for
+    hyperspectral image analysis due to the high dimensionality and complexity of the data.
+
+    Creators:
+        - Michał Romaszewski
+        - Przemysław Głomb
+        - Arkadiusz Sochan
+        - Michał Cholewa
+
+    Dataset Details:
+        - Images are provided in ENVI format.
+        - The dataset includes annotations for pixels where blood and similar substances are visible.
+        - Variations in background composition and lighting intensity are present across different images.
+
+    Reference:
+        This dataset and its use are documented in the following publications:
+        - Preprint: arXiv:2008.10254 (https://arxiv.org/abs/2008.10254)
+        - Journal article: Sensors 2020, 20(22), 6666; https://doi.org/10.3390/s20226666
+        - Journal article: Forensic Science International, Volume 319, April 2021, 110701;
+          https://doi.org/10.1016/j.forsciint.2021.110701
+
+    Dataset DOI: 10.5281/zenodo.3984905
+
+    Args:
+        data_dir (str): The directory path where the dataset is stored or will be downloaded to.
+        doi (str): The DOI of the dataset for downloading using Zenodo.
+        batch_size (int): The number of samples per batch to load.
+        patch_size (int): The size of the patches to be extracted from the hyperspectral images.
+        transform (callable, optional): Optional transform to be applied on a sample.
+        selected_image (str, optional): The specific image to be loaded from the dataset. If not specified,
+                                        a random image from the predefined list will be chosen.
+        **kwargs: Additional hyperparameters relevant to the dataset or model.
+
+    Methods:
+        prepare_data: Implements the data preparation logic including dataset downloading and extraction.
+        setup: Sets up the data module by loading the selected hyperspectral image and its annotations
+               for subsequent processing.
+        load_image_and_annotation: Loads a specific hyperspectral image and its corresponding annotations
+                                   from the dataset.
+
+    Usage:
+        To use this data module, instantiate it with the desired configuration and call the `prepare_data`
+        method followed by the `setup` method. After setup, the `train_dataloader` and `val_dataloader`
+        methods can be used to obtain DataLoaders for training and validation.
+
+    Example:
+        >>> dm = BloodDetectionHSIDataModule(data_dir='/path/to/data', doi='10.5281/zenodo.3984905',
+        ...                                  batch_size=32, patch_size=5, selected_image='A_1')
+        >>> dm.prepare_data()
+        >>> dm.setup(stage='fit')
+        >>> train_loader = dm.train_dataloader()
+        >>> val_loader = dm.val_dataloader()
+    """
+
     IMAGES = ['A_1', 'B_1', 'C_1', 'D_1', 'E_1', 'E_7', 'E_21',
               'F_1', 'F_1a', 'F_1s', 'F_2', 'F_2k', 'F_7', 'F_21']
 
