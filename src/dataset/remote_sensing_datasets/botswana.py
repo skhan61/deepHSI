@@ -16,6 +16,41 @@ from src.dataset.hyperspectral_datamodule import BaseHyperspectralDataModule
 
 
 class BotswanaDataModule(BaseHyperspectralDataModule):
+    """
+    A PyTorch Lightning DataModule for the Botswana hyperspectral image classification dataset.
+
+    The Botswana dataset consists of hyperspectral remote sensing images acquired by the NASA EO-1 satellite
+    over the Okavango Delta, Botswana. The dataset features a diverse set of land cover types and has been
+    preprocessed to mitigate various sensor-related anomalies, resulting in 145 spectral bands suitable for analysis.
+
+    Attributes:
+        data_dir (str): The directory where the dataset is stored or will be downloaded.
+        batch_size (int): The size of batches to be used during training.
+        patch_size (int): The size of the patches to be extracted from hyperspectral images.
+        transform (callable, optional): Optional transform to be applied on a sample.
+        hyperparams (dict, optional): Additional hyperparameters for dataset handling.
+
+    Methods:
+        prepare_data: Downloads the dataset to the specified directory if it does not already exist.
+        setup: Prepares the dataset for use in the model by loading the images, applying any specified transforms,
+               and splitting into training and validation sets.
+
+    Dataset Source:
+        The dataset was acquired by the NASA EO-1 satellite's Hyperion sensor over the Okavango Delta, Botswana.
+        It has been preprocessed by the UT Center for Space Research to address sensor-related anomalies.
+
+    Land Cover Types:
+        The dataset includes observations from 14 land cover types in seasonal swamps, occasional swamps, and drier woodlands.
+
+    Usage Example:
+        ```python
+        botswana_data_module = BotswanaDataModule(data_dir='/path/to/data', batch_size=32, patch_size=5)
+        botswana_data_module.prepare_data()
+        botswana_data_module.setup(stage='fit')
+        train_loader = botswana_data_module.train_dataloader()
+        ```
+    """
+    
     def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
         super().__init__(data_dir, "Botswana", batch_size,
                          patch_size, transform, hyperparams=kwargs)
