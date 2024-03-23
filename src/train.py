@@ -1,3 +1,6 @@
+from src.utils import (RankedLogger, extras, get_metric_value,
+                       instantiate_callbacks, instantiate_loggers,
+                       log_hyperparameters, task_wrapper)
 from typing import Any, Dict, List, Optional, Tuple
 
 import hydra
@@ -26,15 +29,6 @@ rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 # more info: https://github.com/ashleve/rootutils
 # ------------------------------------------------------------------------------------ #
 
-from src.utils import (
-    RankedLogger,
-    extras,
-    get_metric_value,
-    instantiate_callbacks,
-    instantiate_loggers,
-    log_hyperparameters,
-    task_wrapper,
-)
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -67,7 +61,8 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger)
+    trainer: Trainer = hydra.utils.instantiate(
+        cfg.trainer, callbacks=callbacks, logger=logger)
 
     object_dict = {
         "cfg": cfg,
@@ -84,7 +79,8 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     if cfg.get("train"):
         log.info("Starting training!")
-        trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"))
+        trainer.fit(model=model, datamodule=datamodule,
+                    ckpt_path=cfg.get("ckpt_path"))
 
     train_metrics = trainer.callback_metrics
 
@@ -92,7 +88,8 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         log.info("Starting testing!")
         ckpt_path = trainer.checkpoint_callback.best_model_path
         if ckpt_path == "":
-            log.warning("Best ckpt not found! Using current weights for testing...")
+            log.warning(
+                "Best ckpt not found! Using current weights for testing...")
             ckpt_path = None
         trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path)
         log.info(f"Best ckpt path: {ckpt_path}")

@@ -79,11 +79,10 @@ class BloodDetectionHSIDataModule(BaseHyperspectralDataModule):
     IMAGES = ['A_1', 'B_1', 'C_1', 'D_1', 'E_1', 'E_7', 'E_21',
               'F_1', 'F_1a', 'F_1s', 'F_2', 'F_2k', 'F_7', 'F_21']
 
-    def __init__(self, data_dir, doi, batch_size=32,
-                 patch_size=5, transform=None, selected_image=None, **kwargs):
+    def __init__(self, data_dir, doi, transform=None, selected_image=None, **kwargs):
         self.dataset_name = "BloodDetectionHSI"
-        super().__init__(data_dir, self.dataset_name, batch_size,
-                         patch_size, transform, hyperparams=kwargs)
+        super().__init__(data_dir, self.dataset_name,
+                         transform=transform, hyperparams=kwargs)
         self.doi = doi
         self.selected_image = selected_image
 

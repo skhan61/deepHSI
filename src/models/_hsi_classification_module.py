@@ -1,18 +1,17 @@
 from typing import Any, Dict, Optional, Tuple
 
-import lightning as L
 import torch
 import torch.nn.functional as F
-# from pytorch_lightning import LightningModule
+from pytorch_lightning import LightningModule
 from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
                           Recall)
 from torchmetrics.classification.accuracy import Accuracy
 
 
-class HSIClassificationLitModule(L.LightningModule):
+class HSIClassificationLitModule(LightningModule):
     def __init__(
         self,
-        net: torch.nn.Module,
+        model: torch.nn.Module,
         optimizer_cls: type,
         optimizer_params: Dict[str, Any],
         loss_fn: torch.nn.Module = F.cross_entropy,
@@ -23,7 +22,7 @@ class HSIClassificationLitModule(L.LightningModule):
         custom_metrics: Optional[Dict[str, Metric]] = None,
     ):
         super().__init__()
-        self.net = net
+        self.model = model
         self.loss_fn = loss_fn
         self.optimizer_cls = optimizer_cls
         self.optimizer_params = optimizer_params
@@ -41,11 +40,44 @@ class HSIClassificationLitModule(L.LightningModule):
                 # Reference the attribute in the metrics dict
                 self.metrics[metric_name] = getattr(self, metric_name)
 
-        self.save_hyperparameters(ignore=['net'])
-        # self.save_hyperparameters()
+        # self.save_hyperparameters(ignore=['model'])
+        self.save_hyperparameters()
         # self.save_hyperparameters(logger=False, ignore=['model'])
 
-        self.validation_step_outputs = []
+    def setup(self, stage: str) -> None:
+        if hasattr(self.hparams, 'compile') and self.hparams.compile and stage == "fit":
+            self.model = torch.compile(self.model)
+
+    def configure_optimizers(self) -> Dict[str, Any]:
+        """Choose what optimizers and learning-rate schedulers to use in your optimization.
+        Normally you'd need one. But in the case of GANs or similar you might have multiple.
+
+        :return: A dict containing the configured optimizers and 
+                 learning-rate schedulers to be used for training.
+        """
+        # Ensure the model has parameters
+        model_parameters = list(self.model.parameters())
+        if len(model_parameters) == 0:
+            raise ValueError(
+                "The model does not have any parameters. Please check the model architecture.")
+
+        # Initialize the optimizer with the model's parameters
+        optimizer = self.optimizer_cls(
+            params=model_parameters, **self.optimizer_params)
+
+        if self.scheduler_cls is not None:
+            scheduler = self.scheduler_cls(
+                optimizer=optimizer, **self.scheduler_params)
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "monitor": "val/loss",
+                    "interval": "epoch",
+                    "frequency": 1,
+                },
+            }
+        return {"optimizer": optimizer}
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass through the model `self.net`.
@@ -53,42 +85,7 @@ class HSIClassificationLitModule(L.LightningModule):
         :param x: A tensor of images.
         :return: A tensor of logits.
         """
-        return self.net(x)
-
-    def setup(self, stage: str) -> None:
-        """Lightning hook that is called at the beginning of fit 
-        (train + validate), validate,
-        test, or predict.
-
-        This is a good hook when you need to build models dynamically 
-        or adjust something about
-        them. This hook is called on every process when using DDP.
-
-        :param stage: Either `"fit"`, `"validate"`, `"test"`, or `"predict"`.
-        """
-        if getattr(self.hparams, 'compile', False) and stage == "fit":
-            self.net = torch.compile(self.net)
-
-        # if hasattr(self.hparams, 'compile') and self.hparams.compile and stage == "fit":
-
-    def configure_optimizers(self) -> Dict[str, Any]:
-        # Initialize the optimizer with the parameters of your model (net)
-        optimizer = self.optimizer_cls(
-            self.net.parameters(), **self.optimizer_params)
-
-        # Initialize the scheduler if specified, with the optimizer
-        if self.scheduler_cls is not None:
-            scheduler = self.scheduler_cls(optimizer, **self.scheduler_params)
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": {
-                    "scheduler": scheduler,
-                    "monitor": "val/loss",  # Make sure this metric is being logged
-                    "interval": "epoch",
-                    "frequency": 1,
-                },
-            }
-        return {"optimizer": optimizer}
+        return self.model(x)
 
     def model_step(self, batch: Tuple[torch.Tensor, torch.Tensor]) \
             -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -124,26 +121,18 @@ class HSIClassificationLitModule(L.LightningModule):
                       batch_idx: int) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
 
-        :param batch: A batch of data (a tuple) containing the input tensor of images 
-                    and target labels.
-                    batch[0] (inputs) shape: [batch_size, channels, height, width]
-                    batch[1] (labels) shape: [batch_size]
+        :param batch: A batch of data (a tuple) containing the input 
+                    tensor of images and target labels.
 
         :param batch_idx: The index of the current batch.
         :return: A tensor of losses between model predictions and targets.
         """
 
-        # Assuming model_step is defined elsewhere
         loss, preds, targets = self.model_step(batch)
 
-        # preds shape: [batch_size, num_classes] - Assuming a classification task
-        # targets shape: [batch_size]
-
         # Ensure predictions and targets are on the same device as the model
-        device = next(self.net.parameters()).device
-        # preds after this line have the same shape: [batch_size, num_classes]
+        device = next(self.model.parameters()).device
         preds = preds.to(device)
-        # targets after this line have the same shape: [batch_size]
         targets = targets.to(device)
 
         # Log the training loss
@@ -161,19 +150,39 @@ class HSIClassificationLitModule(L.LightningModule):
 
         return loss
 
-    def on_train_epoch_end(self) -> None:
-        "Lightning hook that is called when a training epoch ends."
-        pass
+    def on_train_epoch_end(self, unused=None) -> None:
+        print(f"\nEpoch {self.current_epoch} - Summary of Training Metrics:")
+
+        # Check and print the average training loss for the epoch
+        avg_epoch_loss_key = "train/loss_epoch"
+        if avg_epoch_loss_key in self.trainer.logged_metrics:
+            avg_epoch_loss = self.trainer.logged_metrics[avg_epoch_loss_key].item(
+            )
+            print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
+        else:
+            print("  Average Train Loss: Not available for this epoch.")
+
+        # Iterate through all custom metrics
+        for metric_name in self.metrics.keys():
+            # Ensure the metric name used here matches the one used in training_step
+            metric_epoch_key = f"train/{metric_name}"
+
+            if metric_epoch_key in self.trainer.logged_metrics:
+                avg_metric_value = self.trainer.logged_metrics[metric_epoch_key].item(
+                )
+                print(f"  {metric_name.capitalize()}: {avg_metric_value:.4f}")
+            else:
+                print(f"  {metric_name.capitalize()
+                           }: Not available for this epoch.")
+
+        super().on_train_epoch_end()
 
     def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int):
         """
-        Perform a single validation step. This method will be called 
-        for each batch of the validation set.
+        Perform a single validation step. This method will be called for each batch of the validation set.
 
         Args:
-            batch (Tuple[torch.Tensor, torch.Tensor]): The current batch of 
-                                                       data in the validation set.
-
+            batch (Tuple[torch.Tensor, torch.Tensor]): The current batch of data in the validation set.
             batch_idx (int): The index of the current batch.
         """
         loss, preds, targets = self.model_step(batch)
@@ -182,21 +191,35 @@ class HSIClassificationLitModule(L.LightningModule):
         self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
         # Update custom metrics with predictions and targets
-
-        # Update and log custom metrics for each step
-        # and aggregate them over the epoch
         for metric_name, metric_obj in self.metrics.items():
             metric_obj.update(preds, targets)
-            metric_value = metric_obj.compute()  # Ensure you compute the metric
-            self.log(f"train/{metric_name}", metric_value,
-                     on_step=False, on_epoch=True, prog_bar=False)
-            metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
 
-        return loss
+    def on_validation_epoch_end(self):
+        """
+        Called at the end of the validation epoch to log the computed values of custom metrics
+        and print them for immediate visibility in the console or logs.
+        """
+        print(f"\nEpoch {self.current_epoch} - Summary of Validation Metrics:")
 
+        # Log and print the computed values of custom metrics at the end of the validation epoch
+        for metric_name, metric_obj in self.metrics.items():
+            # Ensure the metric has a 'compute' method
+            if hasattr(metric_obj, 'compute'):
+                metric_value = metric_obj.compute()
+                self.log(f"val/{metric_name}", metric_value,
+                         prog_bar=True, logger=True)
+                metric_obj.reset()  # Reset the metric for the next epoch
 
-    # def on_validation_epoch_end(self):
-    #     all_preds = torch.stack(self.validation_step_outputs)
-    #     # do something with all preds
-    #     # ...
-    #     self.validation_step_outputs.clear()  # free memory
+                # Print the metric value if it has been logged successfully
+                metric_epoch_key = f"val/{metric_name}"
+                if metric_epoch_key in self.trainer.logged_metrics:
+                    avg_metric_value = self.trainer.logged_metrics[metric_epoch_key].item(
+                    )
+                    print(f"  {metric_name.capitalize()}: {
+                          avg_metric_value:.4f}")
+                else:
+                    print(f"  {metric_name.capitalize()
+                               }: Not available for this epoch.")
+
+        # Call the parent class's method if needed
+        super().on_validation_epoch_end()
