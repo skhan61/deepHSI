@@ -16,9 +16,18 @@ from src.dataset.hyperspectral_datamodule import BaseHyperspectralDataModule
 
 
 class PaviaCDataModule(BaseHyperspectralDataModule):
-    def __init__(self, data_dir, batch_size=32, patch_size=5, transform=None, **kwargs):
-        super().__init__(data_dir, "PaviaU", batch_size,
-                         patch_size, transform, hyperparams=kwargs)
+    def __init__(self, data_dir, transform=None, hyperparams=None):
+        """
+        Initializes the PaviaCDataModule with the provided parameters.
+
+        Args:
+            data_dir (str): The directory path for the dataset.
+            transform (callable, optional): An optional function/transform to apply to the data.
+            hyperparams (dict, optional): Dictionary containing additional hyperparameters for the dataset or model,
+                                          including 'batch_size', 'patch_size', and 'num_workers'.
+        """
+        super().__init__(data_dir, "PaviaC",
+                         transform=transform, hyperparams=hyperparams)
 
     def prepare_data(self):
         # Check if the dataset directory exists

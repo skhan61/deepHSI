@@ -1,54 +1,81 @@
 import torch
-from torch import nn
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn import init
 
 
-class SimpleDenseNet(nn.Module):
-    """A simple fully-connected neural net for computing predictions."""
+class HSIFCModel(nn.Module):
+    """
+    Fully Connected Neural Network for Hyperspectral Image Classification.
+    Designed to work with 3D input tensors representing hyperspectral image patches.
+    """
 
-    def __init__(
-        self,
-        input_size: int = 784,
-        lin1_size: int = 256,
-        lin2_size: int = 256,
-        lin3_size: int = 256,
-        output_size: int = 10,
-    ) -> None:
-        """Initialize a `SimpleDenseNet` module.
-
-        :param input_size: The number of input features.
-        :param lin1_size: The number of output features of the first linear layer.
-        :param lin2_size: The number of output features of the second linear layer.
-        :param lin3_size: The number of output features of the third linear layer.
-        :param output_size: The number of output features of the final linear layer.
+    @staticmethod
+    def weight_init(m):
         """
-        super().__init__()
-
-        self.model = nn.Sequential(
-            nn.Linear(input_size, lin1_size),
-            nn.BatchNorm1d(lin1_size),
-            nn.ReLU(),
-            nn.Linear(lin1_size, lin2_size),
-            nn.BatchNorm1d(lin2_size),
-            nn.ReLU(),
-            nn.Linear(lin2_size, lin3_size),
-            nn.BatchNorm1d(lin3_size),
-            nn.ReLU(),
-            nn.Linear(lin3_size, output_size),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a single forward pass through the network.
-
-        :param x: The input tensor.
-        :return: A tensor of predictions.
+        Initializes the weights of the linear layers using Kaiming Normal initialization
+        and sets biases to zero.
         """
-        batch_size, channels, width, height = x.size()
+        if isinstance(m, nn.Linear):
+            init.kaiming_normal_(m.weight)
+            init.zeros_(m.bias)
 
-        # (batch, 1, width, height) -> (batch, 1*width*height)
-        x = x.view(batch_size, -1)
+    def __init__(self, input_channels, patch_size, n_classes, dropout=False):
+        """
+        Initializes the HSIFCModel.
 
-        return self.model(x)
+        Args:
+            input_channels (int): Number of input spectral channels.
+            patch_size (int): The size of the spatial dimensions (assumed square patches).
+            n_classes (int): Number of output classes.
+            dropout (bool, optional): If True, applies dropout with p=0.5. Defaults to False.
+        """
+        super(HSIFCModel, self).__init__()
 
+        self.input_channels = input_channels
+        self.patch_size = patch_size
+        self.use_dropout = dropout
 
-if __name__ == "__main__":
-    _ = SimpleDenseNet()
+        # Calculate the total number of features after flattening
+        input_features = input_channels * patch_size * patch_size
+
+        # Fully connected layers
+        self.fc1 = nn.Linear(input_features, 2048)
+        self.fc2 = nn.Linear(2048, 4096)
+        self.fc3 = nn.Linear(4096, 2048)
+        self.fc4 = nn.Linear(2048, n_classes)
+
+        if dropout:
+            self.dropout = nn.Dropout(p=0.5)
+
+        self.apply(self.weight_init)  # Apply weight initialization
+
+    def forward(self, x):
+        """
+        Forward pass of the network.
+
+        Args:
+            x (torch.Tensor): Input tensor with shape [batch_size, planes, channels, height, width].
+                            The spatial dimensions (height, width) and planes are assumed to be flattened.
+
+        Returns:
+            torch.Tensor: Output logits.
+        """
+        # Flatten the input tensor except for the batch dimension
+        # print('from model...')
+        # # print(x.shape)
+        x = x.reshape(x.size(0), -1)  # Use .reshape() instead of .view()
+
+        # print(x.shape)
+
+        x = F.relu(self.fc1(x))
+        if self.use_dropout:
+            x = self.dropout(x)
+        x = F.relu(self.fc2(x))
+        if self.use_dropout:
+            x = self.dropout(x)
+        x = F.relu(self.fc3(x))
+        if self.use_dropout:
+            x = self.dropout(x)
+        x = self.fc4(x)
+        return x

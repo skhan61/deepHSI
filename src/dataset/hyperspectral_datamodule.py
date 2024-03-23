@@ -5,7 +5,7 @@ import shutil
 import zipfile
 
 import numpy as np
-import pytorch_lightning as pl
+import lightning as L
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
@@ -14,7 +14,7 @@ from src.dataset.components.utils import (download_dataset,
                                           download_from_zenodo, load_dataset)
 
 
-class BaseHyperspectralDataModule(pl.LightningDataModule):
+class BaseHyperspectralDataModule(L.LightningDataModule):
     """
     A foundational class for managing hyperspectral datasets within a PyTorch Lightning framework. 
     This base class streamlines the data handling process, offering a structured approach to organizing, 
@@ -64,8 +64,10 @@ class BaseHyperspectralDataModule(pl.LightningDataModule):
         ```
     """
 
-    def __init__(self, data_dir, dataset_name, batch_size=32,
-                 patch_size=5, transform=None, hyperparams=None):
+    def __init__(self, data_dir,
+                 dataset_name,
+                 transform=None,
+                 hyperparams=None):
         """
         Initializes the BaseHyperspectralDataModule with the provided parameters.
 
@@ -78,20 +80,26 @@ class BaseHyperspectralDataModule(pl.LightningDataModule):
             hyperparams (dict, optional): Additional hyperparameters for the dataset or model.
         """
         super().__init__()
+
         self.data_dir = data_dir
         self.dataset_name = dataset_name
-        self.batch_size = batch_size
-        self.patch_size = patch_size
         self.transform = transform
         self.hyperparams = hyperparams or {}
 
+        # Set default values for hyperparameters if not specified
+        self.hyperparams.setdefault('batch_size', 32)
+        self.hyperparams.setdefault('patch_size', 5)
+        self.hyperparams.setdefault('num_workers', 4)
+
     def setup_datasets(self, img, gt, hyperparams):
         """
-        Splits the dataset into training and validation sets and applies any specified transformations.
+        Splits the dataset into training and validation sets 
+        and applies any specified transformations.
 
         Args:
             img (numpy.ndarray): The hyperspectral image data.
-            gt (numpy.ndarray): The ground truth labels corresponding to the hyperspectral image data.
+            gt (numpy.ndarray): The ground truth labels corresponding 
+            to the hyperspectral image data.
             hyperparams (dict): Additional hyperparameters for dataset setup.
         """
         self.dataset = HyperspectralDataset(
@@ -106,7 +114,9 @@ class BaseHyperspectralDataModule(pl.LightningDataModule):
         Returns:
             DataLoader: The DataLoader object for the training dataset.
         """
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_dataset,
+                          num_workers=self.hyperparams['num_workers'],
+                          batch_size=self.hyperparams['batch_size'], shuffle=True)
 
     def val_dataloader(self):
         """
@@ -115,7 +125,9 @@ class BaseHyperspectralDataModule(pl.LightningDataModule):
         Returns:
             DataLoader: The DataLoader object for the validation dataset.
         """
-        return DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return DataLoader(self.val_dataset,
+                          num_workers=self.hyperparams['num_workers'],
+                          batch_size=self.hyperparams['batch_size'])
 
     def prepare_data(self):
         """
