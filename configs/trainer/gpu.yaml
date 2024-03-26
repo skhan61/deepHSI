@@ -3,3 +3,9 @@ defaults:
 
 accelerator: gpu
 devices: 1
+
+# Enable mixed precision training
+precision: 16-mixed
+
+# It is recommended to set this in your training script, as it's not a part of the Trainer configuration
+# torch.set_float32_matmul_precision('medium')

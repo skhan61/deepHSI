@@ -20,7 +20,9 @@ class HSIFCModel(nn.Module):
             init.kaiming_normal_(m.weight)
             init.zeros_(m.bias)
 
-    def __init__(self, input_channels, patch_size, n_classes, dropout=False):
+    def __init__(self, input_channels,
+                 patch_size, n_classes,
+                 dropout=False):
         """
         Initializes the HSIFCModel.
 
@@ -38,6 +40,10 @@ class HSIFCModel(nn.Module):
 
         # Calculate the total number of features after flattening
         input_features = input_channels * patch_size * patch_size
+
+        # print('==========')
+        # print(input_features)
+        # print('===========')
 
         # Fully connected layers
         self.fc1 = nn.Linear(input_features, 2048)
@@ -63,7 +69,7 @@ class HSIFCModel(nn.Module):
         """
         # Flatten the input tensor except for the batch dimension
         # print('from model...')
-        # # print(x.shape)
+        # print(x.shape)
         x = x.reshape(x.size(0), -1)  # Use .reshape() instead of .view()
 
         # print(x.shape)
