@@ -1,18 +1,18 @@
 # @package _global_
 
-# to execute this experiment run:
-# python train.py experiment=indianpine_experiment
+# To execute this experiment run:
+# python train.py experiment=indianpines_experiment
 
 defaults:
-  - override /data: indianpines
-  - override /model: mnist
+  - override /data: indianpines_datamodule
+  - override /model: indianpines_model  # Ensure this points to the correct model config file
   - override /callbacks: default
   - override /trainer: default
 
-# all parameters below will be merged with parameters from default configurations set above
-# this allows you to overwrite only specified parameters
+# All parameters below will be merged with parameters from default configurations set above
+# This allows you to overwrite only specified parameters
 
-tags: ["mnist", "simple_dense_net"]
+# tags: ["indianpines", "hsi_classification"]
 
 seed: 12345
 
@@ -20,22 +20,3 @@ trainer:
   min_epochs: 10
   max_epochs: 10
   gradient_clip_val: 0.5
-
-model:
-  optimizer:
-    lr: 0.002
-  net:
-    lin1_size: 128
-    lin2_size: 256
-    lin3_size: 64
-  compile: false
-
-data:
-  batch_size: 64
-
-logger:
-  wandb:
-    tags: ${tags}
-    group: "mnist"
-  aim:
-    experiment: "mnist"

@@ -72,7 +72,18 @@ class HyperspectralDataset(Dataset):
 
         supervision = hyperparams.get("supervision", "full")
 
-        self.transform = transform
+        # self.transform = transform
+
+        # Handling transform
+        if isinstance(transform, str) and transform.lower() != 'none':
+            module_name, func_name = transform.rsplit('.', 1)
+            module = importlib.import_module(module_name)
+            # print()
+            # print(module)
+            # print()
+            self.transform = getattr(module, func_name)
+        else:
+            self.transform = None  # Set to None if not specified or explicitly set to null in YAML
 
         # Fully supervised: use all pixels with labels not in ignored_labels
         if supervision == "full":

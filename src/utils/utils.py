@@ -3,19 +3,15 @@ import warnings
 from importlib.util import find_spec
 from typing import Any, Callable, Dict, Optional, Tuple
 
+import matplotlib.pyplot as plt  # plt.imread can be used for TIFF files
+import spectral
 from omegaconf import DictConfig
+from scipy import io  # For io.loadmat
 from scipy.io import loadmat
 
 from src.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
-
-
-import os
-
-import matplotlib.pyplot as plt  # plt.imread can be used for TIFF files
-import spectral
-from scipy import io  # For io.loadmat
 
 
 def open_file(dataset):
@@ -69,9 +65,14 @@ def task_wrapper(task_func: Callable) -> Callable:
     """Optional decorator that controls the failure behavior when executing the task function.
 
     This wrapper can be used to:
-        - make sure loggers are closed even if the task function raises an exception (prevents multirun failure)
+        - make sure loggers are closed even if the task function raises an exception 
+          (prevents multirun failure)
+
         - save the exception to a `.log` file
-        - mark the run as failed with a dedicated file in the `logs/` folder (so we can find and rerun it later)
+
+        - mark the run as failed with a dedicated file in the `logs/` 
+          folder (so we can find and rerun it later)
+
         - etc. (adjust depending on your needs)
 
     Example:

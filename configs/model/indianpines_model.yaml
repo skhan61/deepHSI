@@ -1,0 +1,44 @@
+_target_: src.models.hsi_classification_module.HSIClassificationLitModule
+
+net:
+  _target_: src.models.components.simple_dense_net.HSIFCModel
+  input_channels: 200
+  patch_size: 5
+  dropout: true
+  n_classes: 17
+
+optimizer: Adam
+optimizer_params:
+  lr: 0.001
+  weight_decay: 0.0
+
+
+scheduler: ReduceLROnPlateau
+scheduler_params:
+  mode: min
+  factor: 0.1
+  patience: 10
+
+num_classes: 17
+
+custom_metrics:
+  precision:
+    _target_: torchmetrics.Precision
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'
+  recall:
+    _target_: torchmetrics.Recall
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'
+  f1:
+    _target_: torchmetrics.F1Score
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'
+
+# # compile model for faster training with pytorch 2.0
+# compile: false
+
+

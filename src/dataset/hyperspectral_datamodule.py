@@ -4,8 +4,8 @@ import random
 import shutil
 import zipfile
 
-import numpy as np
 import lightning as L
+import numpy as np
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
