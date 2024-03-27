@@ -15,6 +15,8 @@ from src.dataset.remote_sensing_datasets.salinas import SalinasDataModule
 # from src.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
 
 # #   SalinasDataModule)
+
+
 @pytest.mark.parametrize("DataModule, dataset_name, hyperparams", [
     (SalinasDataModule, "Salinas", {
         "patch_size": 5, "center_pixel": True, "supervision": "full"}),
@@ -53,5 +55,19 @@ def test_hyperspectral_datamodule(DataModule, dataset_name, hyperparams):
     assert x.dtype == torch.float32, "Data dtype is not float32."
     assert y.dtype == torch.long, "Label dtype is not long."
 
-    # Clean up after test using shutil.rmtree()
+    # Test dataloader (if applicable)
+    if hasattr(dm, 'test_dataloader') and callable(getattr(dm, 'test_dataloader')):
+        dm.setup(stage='test')
+        test_dataloader = dm.test_dataloader()
+        test_batch = next(iter(test_dataloader))
+        test_x, test_y = test_batch
+
+        assert len(test_x) == hyperparams['batch_size'], f"Test batch size does not match expected: {
+            hyperparams['batch_size']}."
+        assert len(test_y) == hyperparams['batch_size'], f"Test label batch size does not match expected: {
+            hyperparams['batch_size']}."
+        assert test_x.dtype == torch.float32, "Test data dtype is not float32."
+        assert test_y.dtype == torch.long, "Test label dtype is not long."
+
+    # Clean up after test
     shutil.rmtree(data_dir)

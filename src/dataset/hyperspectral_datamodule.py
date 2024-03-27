@@ -91,21 +91,39 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         self.hyperparams.setdefault('patch_size', 5)
         self.hyperparams.setdefault('num_workers', 4)
 
-    def setup_datasets(self, img, gt, hyperparams):
-        """
-        Splits the dataset into training and validation sets 
-        and applies any specified transformations.
+        self.batch_size = self.hyperparams['batch_size']
 
-        Args:
-            img (numpy.ndarray): The hyperspectral image data.
-            gt (numpy.ndarray): The ground truth labels corresponding 
-            to the hyperspectral image data.
-            hyperparams (dict): Additional hyperparameters for dataset setup.
-        """
+    # def setup_datasets(self, img, gt, hyperparams):
+    #     """
+    #     Splits the dataset into training and validation sets
+    #     and applies any specified transformations.
+
+    #     Args:
+    #         img (numpy.ndarray): The hyperspectral image data.
+    #         gt (numpy.ndarray): The ground truth labels corresponding
+    #         to the hyperspectral image data.
+    #         hyperparams (dict): Additional hyperparameters for dataset setup.
+    #     """
+    #     self.dataset = HyperspectralDataset(
+    #         img, gt, transform=self.transform, **hyperparams)
+    #     self.train_dataset, self.val_dataset = random_split(self.dataset, [int(
+    #         0.8 * len(self.dataset)), len(self.dataset) - int(0.8 * len(self.dataset))])
+
+    def setup_datasets(self, img, gt, hyperparams):
         self.dataset = HyperspectralDataset(
             img, gt, transform=self.transform, **hyperparams)
-        self.train_dataset, self.val_dataset = random_split(self.dataset, [int(
-            0.8 * len(self.dataset)), len(self.dataset) - int(0.8 * len(self.dataset))])
+
+        # Adjust the splitting to include test data
+        train_size = int(0.7 * len(self.dataset))
+        test_val_size = len(self.dataset) - train_size
+        # Splitting the remaining into half for validation and test
+        val_size = int(0.5 * test_val_size)
+        test_size = test_val_size - val_size  # The rest goes into the test
+
+        self.train_dataset, test_val_dataset = random_split(
+            self.dataset, [train_size, test_val_size])
+        self.val_dataset, self.test_dataset = random_split(
+            test_val_dataset, [val_size, test_size])
 
     def train_dataloader(self):
         """
@@ -116,7 +134,7 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         """
         return DataLoader(self.train_dataset,
                           num_workers=self.hyperparams['num_workers'],
-                          batch_size=self.hyperparams['batch_size'], shuffle=True)
+                          batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
         """
@@ -127,7 +145,21 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         """
         return DataLoader(self.val_dataset,
                           num_workers=self.hyperparams['num_workers'],
-                          batch_size=self.hyperparams['batch_size'])
+                          batch_size=self.batch_size)
+
+    def test_dataloader(self):
+        """
+        Creates a DataLoader for the test dataset.
+
+        Returns:
+            DataLoader: The DataLoader object for the test dataset.
+        """
+
+        return DataLoader(self.test_dataset,
+                          batch_size=self.batch_size, shuffle=False,
+                          num_workers=self.hyperparams['num_workers'])
+
+        # pass
 
     def prepare_data(self):
         """

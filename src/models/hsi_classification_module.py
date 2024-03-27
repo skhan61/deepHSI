@@ -1,9 +1,16 @@
+import functools
 import importlib
+import inspect  # Add this import statement at the beginning of your script
 from typing import Any, Dict, Optional, Tuple
 
 import lightning as L
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 import torch
 import torch.nn.functional as F
+from sklearn.metrics import confusion_matrix
+from torch.optim.lr_scheduler import LinearLR, SequentialLR
 # from pytorch_lightning import LightningModule
 from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
                           Recall)
@@ -20,6 +27,7 @@ class HSIClassificationLitModule(L.LightningModule):
         scheduler: Optional[type] = None,
         scheduler_params: Optional[Dict[str, Any]] = None,
         num_classes: int = None,
+
         # New parameter for custom metrics
         custom_metrics: Optional[Dict[str, Metric]] = None,
     ):
@@ -42,6 +50,10 @@ class HSIClassificationLitModule(L.LightningModule):
                 # Reference the attribute in the metrics dict
                 self.metrics[metric_name] = getattr(self, metric_name)
 
+        # Ensure learning rate is saved in hparams for easy access
+        self.learning_rate = optimizer_params.get(
+            'lr', 1e-3)  # Default to 1e-3 if not specified
+
         self.save_hyperparameters(ignore=['net'])
 
         # self.save_hyperparameters()
@@ -49,32 +61,40 @@ class HSIClassificationLitModule(L.LightningModule):
 
         self.validation_step_outputs = []
 
-    def configure_optimizers(self) -> Dict[str, Any]:
-        """Dynamically load optimizer and scheduler classes based 
-                on class names provided in YAML file."""
+    def configure_optimizers(self):
         OptimizerClass = getattr(torch.optim, self.optimizer)
+        optimizer_params = self.optimizer_params.copy()
 
-        # Initialize the optimizer with model parameters and optimizer parameters
-        optimizer = OptimizerClass(
-            self.net.parameters(), **self.optimizer_params)
+        if 'learning_rate' in self.hparams:
+            optimizer_params['lr'] = self.hparams.learning_rate
 
+        optimizer = OptimizerClass(self.net.parameters(), **optimizer_params)
+
+        # Scheduler setup
         if self.scheduler:
-            # Import the scheduler class from torch.optim.lr_scheduler module
-            SchedulerClass = getattr(
-                torch.optim.lr_scheduler, self.scheduler)
+            SchedulerClass = getattr(torch.optim.lr_scheduler, self.scheduler)
 
-            # Initialize the scheduler with the optimizer and scheduler parameters
-            scheduler = SchedulerClass(optimizer, **self.scheduler_params)
+            # Exclude 'epoch' parameter and other non-scheduler init args to prevent warnings
+            valid_scheduler_params = {k: v for k, v in self.scheduler_params.items()
+                                      if k in inspect.signature(SchedulerClass).parameters
+                                      and k != 'epoch'}
 
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": {
-                    "scheduler": scheduler,
-                    "monitor": "val/loss",  # Adjust based on your validation loss logging
-                    "interval": "epoch",
-                    "frequency": 1,
-                },
+            scheduler = SchedulerClass(optimizer, **valid_scheduler_params)
+
+            scheduler_config = {
+                "scheduler": scheduler,
+                # Default to 'epoch' interval
+                "interval": self.scheduler_params.get("interval", "epoch"),
+                # Default frequency
+                "frequency": self.scheduler_params.get("frequency", 1)
             }
+
+            # For schedulers like ReduceLROnPlateau that need a 'monitor' metric
+            if 'monitor' in self.scheduler_params:
+                scheduler_config["monitor"] = self.scheduler_params["monitor"]
+
+            return {"optimizer": optimizer, "lr_scheduler": scheduler_config}
+
         return {"optimizer": optimizer}
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -214,5 +234,35 @@ class HSIClassificationLitModule(L.LightningModule):
         pass
 
     def test_step(self, batch, batch_idx):
-        # Temporary test step to pass testing
-        pass
+        # Perform the forward pass and calculate the loss (if needed)
+        loss, preds, targets = self._model_step(batch)
+
+        # Convert predictions and targets to CPU and detach them from the computation graph
+        preds = preds.detach().cpu()
+        targets = targets.detach().cpu()
+
+        # Return predictions and targets for this batch
+        return {'preds': preds, 'targets': targets}
+
+    def test_epoch_end(self, outputs):
+        # Concatenate all predictions and targets
+        all_preds = torch.cat([x['preds'] for x in outputs], dim=0)
+        all_targets = torch.cat([x['targets'] for x in outputs], dim=0)
+
+        # Compute the confusion matrix
+        cm = confusion_matrix(all_targets.numpy(), all_preds.numpy())
+
+        # Plot the confusion matrix (optional)
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.xlabel('Predicted Labels')
+        plt.ylabel('True Labels')
+        plt.title('Confusion Matrix')
+        plt.show()
+
+        # Log the confusion matrix as an image in TensorBoard (optional)
+        self.logger.experiment.add_figure(
+            "Confusion Matrix", plt.gcf(), self.current_epoch)
+
+        # Return the confusion matrix if you want to see it in the test results
+        return {'confusion_matrix': cm}
