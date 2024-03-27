@@ -73,7 +73,7 @@ nvidia-cusolver-cu12==11.4.5.107
 nvidia-cusparse-cu12==12.3.0.142
 nvidia-nccl-cu12==2.20.5
 nvidia-nvjitlink-cu12==12.4.99
-nvidia-nvtx-cu12==12.1.105
+nvidia-nvtx-cu12==12.4.99
 omegaconf==2.3.0
 optuna==3.6.0
 packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1710075952259/work
