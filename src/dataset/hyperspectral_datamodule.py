@@ -10,15 +10,18 @@ import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
 from src.dataset.components.hyperspectral_dataset import HyperspectralDataset
-from src.dataset.components.utils import (download_dataset,
-                                          download_from_zenodo, load_dataset)
+from src.dataset.components.utils import (
+    download_dataset,
+    download_from_zenodo,
+    load_dataset,
+)
 
 
 class BaseHyperspectralDataModule(L.LightningDataModule):
-    """
-    A foundational class for managing hyperspectral datasets within a PyTorch Lightning framework. 
-    This base class streamlines the data handling process, offering a structured approach to organizing, 
-    preparing, and utilizing hyperspectral data for deep learning applications.
+    """A foundational class for managing hyperspectral datasets within a PyTorch Lightning
+    framework. This base class streamlines the data handling process, offering a structured
+    approach to organizing, preparing, and utilizing hyperspectral data for deep learning
+    applications.
 
     Attributes:
         data_dir (str): Directory where the dataset is stored or will be downloaded.
@@ -39,7 +42,7 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
 
     Example Usage:
         To utilize this base class, one must subclass it and provide implementations for the abstract methods.
-        Below is a simplified example demonstrating how to create a custom data module for a 
+        Below is a simplified example demonstrating how to create a custom data module for a
         new hyperspectral dataset:
 
         ```python
@@ -64,12 +67,8 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         ```
     """
 
-    def __init__(self, data_dir,
-                 dataset_name,
-                 transform=None,
-                 hyperparams=None):
-        """
-        Initializes the BaseHyperspectralDataModule with the provided parameters.
+    def __init__(self, data_dir, dataset_name, transform=None, hyperparams=None):
+        """Initializes the BaseHyperspectralDataModule with the provided parameters.
 
         Args:
             data_dir (str): The directory path for the dataset.
@@ -87,15 +86,14 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         self.hyperparams = hyperparams or {}
 
         # Set default values for hyperparameters if not specified
-        self.hyperparams.setdefault('batch_size', 32)
-        self.hyperparams.setdefault('patch_size', 5)
-        self.hyperparams.setdefault('num_workers', 4)
+        self.hyperparams.setdefault("batch_size", 32)
+        self.hyperparams.setdefault("patch_size", 5)
+        self.hyperparams.setdefault("num_workers", 4)
 
-        self.batch_size = self.hyperparams['batch_size']
+        self.batch_size = self.hyperparams["batch_size"]
 
     def setup_datasets(self, img, gt, hyperparams):
-        self.dataset = HyperspectralDataset(
-            img, gt, transform=self.transform, **hyperparams)
+        self.dataset = HyperspectralDataset(img, gt, transform=self.transform, **hyperparams)
 
         # Adjust the splitting to include test data
         train_size = int(0.7 * len(self.dataset))
@@ -105,59 +103,61 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         test_size = test_val_size - val_size  # The rest goes into the test
 
         self.train_dataset, test_val_dataset = random_split(
-            self.dataset, [train_size, test_val_size])
-        self.val_dataset, self.test_dataset = random_split(
-            test_val_dataset, [val_size, test_size])
+            self.dataset, [train_size, test_val_size]
+        )
+        self.val_dataset, self.test_dataset = random_split(test_val_dataset, [val_size, test_size])
 
     def train_dataloader(self):
-        """
-        Creates a DataLoader for the training dataset.
+        """Creates a DataLoader for the training dataset.
 
         Returns:
             DataLoader: The DataLoader object for the training dataset.
         """
-        return DataLoader(self.train_dataset,
-                          num_workers=self.hyperparams['num_workers'],
-                          batch_size=self.batch_size, shuffle=True)
+        return DataLoader(
+            self.train_dataset,
+            num_workers=self.hyperparams["num_workers"],
+            batch_size=self.batch_size,
+            shuffle=True,
+        )
 
     def val_dataloader(self):
-        """
-        Creates a DataLoader for the validation dataset.
+        """Creates a DataLoader for the validation dataset.
 
         Returns:
             DataLoader: The DataLoader object for the validation dataset.
         """
-        return DataLoader(self.val_dataset,
-                          num_workers=self.hyperparams['num_workers'],
-                          batch_size=self.batch_size)
+        return DataLoader(
+            self.val_dataset,
+            num_workers=self.hyperparams["num_workers"],
+            batch_size=self.batch_size,
+        )
 
     def test_dataloader(self):
-        """
-        Creates a DataLoader for the test dataset.
+        """Creates a DataLoader for the test dataset.
 
         Returns:
             DataLoader: The DataLoader object for the test dataset.
         """
 
-        return DataLoader(self.test_dataset,
-                          batch_size=self.batch_size, shuffle=False,
-                          num_workers=self.hyperparams['num_workers'])
+        return DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.hyperparams["num_workers"],
+        )
 
         # pass
 
     def prepare_data(self):
-        """
-        Placeholder method for data preparation logic.
+        """Placeholder method for data preparation logic.
 
-        This method should be implemented by subclasses to handle dataset-specific preparation steps
-        such as downloading or extracting data.
+        This method should be implemented by subclasses to handle dataset-specific preparation
+        steps such as downloading or extracting data.
         """
-        raise NotImplementedError(
-            "This method should be implemented by subclasses.")
+        raise NotImplementedError("This method should be implemented by subclasses.")
 
     def setup(self, stage=None):
-        """
-        Placeholder method for setup logic.
+        """Placeholder method for setup logic.
 
         This method should be implemented by subclasses to handle dataset-specific loading and
         preprocessing steps, such as creating datasets for training, validation, and testing.
@@ -167,5 +167,4 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
                                    'test', or 'predict'. The stage can be used to differentiate which datasets
                                    need to be setup in the current context.
         """
-        raise NotImplementedError(
-            "This method should be implemented by subclasses.")
+        raise NotImplementedError("This method should be implemented by subclasses.")

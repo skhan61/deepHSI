@@ -3,8 +3,9 @@ import torch
 from torch.optim import Adam
 from torchmetrics import Accuracy
 
-from src.models.hsi_classification_module import \
-    HyperNetModule  # Replace with your actual import
+from src.models.hsi_classification_module import (
+    HyperNetModule,  # Replace with your actual import
+)
 
 
 @pytest.fixture
@@ -38,9 +39,14 @@ def simple_custom_metrics():
 
 
 @pytest.fixture
-def lit_module(simple_model, simple_optimizer,
-               simple_loss_fn, simple_scheduler_cls,
-               simple_scheduler_params, simple_custom_metrics):
+def lit_module(
+    simple_model,
+    simple_optimizer,
+    simple_loss_fn,
+    simple_scheduler_cls,
+    simple_scheduler_params,
+    simple_custom_metrics,
+):
     return HyperNetModule(
         model=simple_model,
         optimizer_cls=simple_optimizer,
@@ -49,7 +55,7 @@ def lit_module(simple_model, simple_optimizer,
         scheduler_cls=simple_scheduler_cls,
         scheduler_params=simple_scheduler_params,
         num_classes=2,
-        custom_metrics=simple_custom_metrics
+        custom_metrics=simple_custom_metrics,
     )
 
 
@@ -74,5 +80,6 @@ def test_training_step(lit_module):
     loss, _, _ = lit_module.model_step(batch)
     assert loss is not None
     assert loss.item() > 0
+
 
 # Add more tests as needed for other methods and functionalities

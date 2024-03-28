@@ -11,9 +11,9 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
+
 # from pytorch_lightning import LightningModule
-from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
-                          Recall)
+from torchmetrics import F1Score, MaxMetric, MeanMetric, Metric, Precision, Recall
 from torchmetrics.classification.accuracy import Accuracy
 
 
@@ -28,7 +28,6 @@ class HyperNetModule(L.LightningModule):
         scheduler: Optional[type] = None,
         scheduler_params: Optional[Dict[str, Any]] = None,
         num_classes: int = None,
-
         # New parameter for custom metrics
         custom_metrics: Optional[Dict[str, Metric]] = None,
     ):
@@ -52,10 +51,9 @@ class HyperNetModule(L.LightningModule):
                 self.metrics[metric_name] = getattr(self, metric_name)
 
         # Ensure learning rate is saved in hparams for easy access
-        self.learning_rate = optimizer_params.get(
-            'lr', 1e-3)  # Default to 1e-3 if not specified
+        self.learning_rate = optimizer_params.get("lr", 1e-3)  # Default to 1e-3 if not specified
 
-        self.save_hyperparameters(ignore=['net'])
+        self.save_hyperparameters(ignore=["net"])
 
         # self.save_hyperparameters()
         # self.save_hyperparameters(logger=False, ignore=['model'])
@@ -66,8 +64,8 @@ class HyperNetModule(L.LightningModule):
         OptimizerClass = getattr(torch.optim, self.optimizer)
         optimizer_params = self.optimizer_params.copy()
 
-        if 'learning_rate' in self.hparams:
-            optimizer_params['lr'] = self.hparams.learning_rate
+        if "learning_rate" in self.hparams:
+            optimizer_params["lr"] = self.hparams.learning_rate
 
         optimizer = OptimizerClass(self.net.parameters(), **optimizer_params)
 
@@ -76,9 +74,11 @@ class HyperNetModule(L.LightningModule):
             SchedulerClass = getattr(torch.optim.lr_scheduler, self.scheduler)
 
             # Exclude 'epoch' parameter and other non-scheduler init args to prevent warnings
-            valid_scheduler_params = {k: v for k, v in self.scheduler_params.items()
-                                      if k in inspect.signature(SchedulerClass).parameters
-                                      and k != 'epoch'}
+            valid_scheduler_params = {
+                k: v
+                for k, v in self.scheduler_params.items()
+                if k in inspect.signature(SchedulerClass).parameters and k != "epoch"
+            }
 
             scheduler = SchedulerClass(optimizer, **valid_scheduler_params)
 
@@ -87,11 +87,11 @@ class HyperNetModule(L.LightningModule):
                 # Default to 'epoch' interval
                 "interval": self.scheduler_params.get("interval", "epoch"),
                 # Default frequency
-                "frequency": self.scheduler_params.get("frequency", 1)
+                "frequency": self.scheduler_params.get("frequency", 1),
             }
 
             # For schedulers like ReduceLROnPlateau that need a 'monitor' metric
-            if 'monitor' in self.scheduler_params:
+            if "monitor" in self.scheduler_params:
                 scheduler_config["monitor"] = self.scheduler_params["monitor"]
 
             return {"optimizer": optimizer, "lr_scheduler": scheduler_config}
@@ -107,24 +107,23 @@ class HyperNetModule(L.LightningModule):
         return self.net(x)
 
     def setup(self, stage: str) -> None:
-        """Lightning hook that is called at the beginning of fit 
-        (train + validate), validate,
+        """Lightning hook that is called at the beginning of fit (train + validate), validate,
         test, or predict.
 
-        This is a good hook when you need to build models dynamically 
-        or adjust something about
+        This is a good hook when you need to build models dynamically or adjust something about
         them. This hook is called on every process when using DDP.
 
         :param stage: Either `"fit"`, `"validate"`, `"test"`, or `"predict"`.
         """
-        if getattr(self.hparams, 'compile', False) and stage == "fit":
+        if getattr(self.hparams, "compile", False) and stage == "fit":
             self.net = torch.compile(self.net)
 
         # if hasattr(self.hparams, 'compile') and self.hparams.compile
         # and stage == "fit":
 
-    def _model_step(self, batch: Tuple[torch.Tensor, torch.Tensor]) \
-            -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _model_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         # x: [batch_size, channels, height, width], y: [batch_size]
         x, y = batch
         # # Check input and label shapes
@@ -159,25 +158,35 @@ class HyperNetModule(L.LightningModule):
         # Reset all custom metrics at the start of training to ensure they
         # don't store results from validation sanity checks or previous runs.
         for metric_name, metric_obj in self.metrics.items():
-            if hasattr(metric_obj, 'reset'):
+            if hasattr(metric_obj, "reset"):
                 metric_obj.reset()
 
         # Log the initial learning rate from the optimizer
-        initial_lr = self.trainer.optimizers[0].param_groups[0]['lr']
-        self.log('initial_learning_rate', initial_lr, on_step=False,
-                 on_epoch=True, prog_bar=True, logger=True)
+        initial_lr = self.trainer.optimizers[0].param_groups[0]["lr"]
+        self.log(
+            "initial_learning_rate",
+            initial_lr,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+        )
 
         # Log the number of trainable parameters in the model
-        model_parameters = sum(p.numel()
-                               for p in self.parameters() if p.requires_grad)
+        model_parameters = sum(p.numel() for p in self.parameters() if p.requires_grad)
         # Check if the logger has 'add_scalar' method
-        if hasattr(self.logger.experiment, 'add_scalar'):
-            self.logger.experiment.add_scalar(
-                "num_trainable_params", model_parameters, 0)
+        if hasattr(self.logger.experiment, "add_scalar"):
+            self.logger.experiment.add_scalar("num_trainable_params", model_parameters, 0)
         else:
             # Fallback to another logging method or print
-            self.log('num_trainable_params', model_parameters,
-                     on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            self.log(
+                "num_trainable_params",
+                model_parameters,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
 
         # If you have static information to log, such as model architecture details or hyperparameters
         # Note: This is more for record-keeping; ensure your logger supports this kind of logging.
@@ -188,15 +197,14 @@ class HyperNetModule(L.LightningModule):
         print(f"Number of Trainable Parameters: {model_parameters}")
         # print(f"Model Architecture:\n{self.net}")
 
-    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
-                      batch_idx: int) -> torch.Tensor:
+    def training_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
+    ) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
 
-        :param batch: A batch of data (a tuple) containing the input tensor of images 
-                    and target labels.
-                    batch[0] (inputs) shape: [batch_size, channels, height, width]
-                    batch[1] (labels) shape: [batch_size]
-
+        :param batch: A batch of data (a tuple) containing the input tensor of images and target
+            labels. batch[0] (inputs) shape: [batch_size, channels, height, width] batch[1]
+            (labels) shape: [batch_size]
         :param batch_idx: The index of the current batch.
         :return: A tensor of losses between model predictions and targets.
         """
@@ -215,16 +223,16 @@ class HyperNetModule(L.LightningModule):
         targets = targets.to(device)
 
         # Log the training loss
-        self.log("train/loss", loss, on_step=True,
-                 on_epoch=True, prog_bar=True)
+        self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
         # Update and log custom metrics for each step
         # and aggregate them over the epoch
         for metric_name, metric_obj in self.metrics.items():
             metric_obj.update(preds, targets)
             metric_value = metric_obj.compute()  # Ensure you compute the metric
-            self.log(f"train/{metric_name}", metric_value,
-                     on_step=False, on_epoch=True, prog_bar=False)
+            self.log(
+                f"train/{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=False
+            )
             metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
 
         return loss
@@ -237,12 +245,11 @@ class HyperNetModule(L.LightningModule):
         self.validation_step_outputs = []
 
     def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int):
-        """
-        Perform a single validation step. This method will be called 
-        for each batch of the validation set.
+        """Perform a single validation step. This method will be called for each batch of the
+        validation set.
 
         Args:
-            batch (Tuple[torch.Tensor, torch.Tensor]): The current batch of 
+            batch (Tuple[torch.Tensor, torch.Tensor]): The current batch of
                                                        data in the validation set.
 
             batch_idx (int): The index of the current batch.
@@ -259,8 +266,9 @@ class HyperNetModule(L.LightningModule):
         for metric_name, metric_obj in self.metrics.items():
             metric_obj.update(preds, targets)
             metric_value = metric_obj.compute()  # Ensure you compute the metric
-            self.log(f"val/{metric_name}", metric_value,
-                     on_step=False, on_epoch=True, prog_bar=False)
+            self.log(
+                f"val/{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=False
+            )
             metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
 
         return loss
@@ -282,7 +290,7 @@ class HyperNetModule(L.LightningModule):
         print(preds)
 
         # Return predictions and targets for this batch
-        return {'preds': preds, 'targets': targets}
+        return {"preds": preds, "targets": targets}
 
     # def test_epoch_end(self, outputs):
     #     pass
