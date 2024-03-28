@@ -49,7 +49,7 @@ Jinja2==3.1.3
 jupyter_client @ file:///home/conda/feedstock_root/build_artifacts/jupyter_client_1710255804825/work
 jupyter_core @ file:///home/conda/feedstock_root/build_artifacts/jupyter_core_1710257406420/work
 lightning==2.2.1
-lightning-utilities==0.10.1
+lightning-utilities==0.11.2
 Mako==1.3.2
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
