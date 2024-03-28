@@ -25,7 +25,7 @@ docker-pycreds==0.4.0
 docutils==0.20.1
 exceptiongroup @ file:///home/conda/feedstock_root/build_artifacts/exceptiongroup_1704921103267/work
 executing @ file:///home/conda/feedstock_root/build_artifacts/executing_1698579936712/work
-filelock==3.13.1
+filelock==3.13.3
 flake8==7.0.0
 frozenlist==1.4.1
 fsspec==2024.2.0
