@@ -93,22 +93,6 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
 
         self.batch_size = self.hyperparams['batch_size']
 
-    # def setup_datasets(self, img, gt, hyperparams):
-    #     """
-    #     Splits the dataset into training and validation sets
-    #     and applies any specified transformations.
-
-    #     Args:
-    #         img (numpy.ndarray): The hyperspectral image data.
-    #         gt (numpy.ndarray): The ground truth labels corresponding
-    #         to the hyperspectral image data.
-    #         hyperparams (dict): Additional hyperparameters for dataset setup.
-    #     """
-    #     self.dataset = HyperspectralDataset(
-    #         img, gt, transform=self.transform, **hyperparams)
-    #     self.train_dataset, self.val_dataset = random_split(self.dataset, [int(
-    #         0.8 * len(self.dataset)), len(self.dataset) - int(0.8 * len(self.dataset))])
-
     def setup_datasets(self, img, gt, hyperparams):
         self.dataset = HyperspectralDataset(
             img, gt, transform=self.transform, **hyperparams)

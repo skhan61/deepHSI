@@ -17,7 +17,8 @@ from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
 from torchmetrics.classification.accuracy import Accuracy
 
 
-class HSIClassificationLitModule(L.LightningModule):
+# TODO: rename: HyperNetModule
+class HyperNetModule(L.LightningModule):
     def __init__(
         self,
         net: torch.nn.Module,
@@ -145,6 +146,14 @@ class HSIClassificationLitModule(L.LightningModule):
 
         return loss, preds, y
 
+    # def on_train_start(self) -> None:
+    #     """Lightning hook that is called when training begins."""
+    #     # Reset all custom metrics at the start of training to ensure they
+    #     # don't store results from validation sanity checks or previous runs.
+    #     for metric_name, metric_obj in self.metrics.items():
+    #         if hasattr(metric_obj, 'reset'):
+    #             metric_obj.reset()
+
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
         # Reset all custom metrics at the start of training to ensure they
@@ -152,6 +161,32 @@ class HSIClassificationLitModule(L.LightningModule):
         for metric_name, metric_obj in self.metrics.items():
             if hasattr(metric_obj, 'reset'):
                 metric_obj.reset()
+
+        # Log the initial learning rate from the optimizer
+        initial_lr = self.trainer.optimizers[0].param_groups[0]['lr']
+        self.log('initial_learning_rate', initial_lr, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+
+        # Log the number of trainable parameters in the model
+        model_parameters = sum(p.numel()
+                               for p in self.parameters() if p.requires_grad)
+        # Check if the logger has 'add_scalar' method
+        if hasattr(self.logger.experiment, 'add_scalar'):
+            self.logger.experiment.add_scalar(
+                "num_trainable_params", model_parameters, 0)
+        else:
+            # Fallback to another logging method or print
+            self.log('num_trainable_params', model_parameters,
+                     on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
+        # If you have static information to log, such as model architecture details or hyperparameters
+        # Note: This is more for record-keeping; ensure your logger supports this kind of logging.
+        # self.logger.experiment.add_text("model_architecture", str(self.net))
+
+        # You can also print this information to ensure it's visible in the console output
+        print(f"Initial Learning Rate: {initial_lr}")
+        print(f"Number of Trainable Parameters: {model_parameters}")
+        # print(f"Model Architecture:\n{self.net}")
 
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
                       batch_idx: int) -> torch.Tensor:
@@ -237,32 +272,17 @@ class HSIClassificationLitModule(L.LightningModule):
         # Perform the forward pass and calculate the loss (if needed)
         loss, preds, targets = self._model_step(batch)
 
+        print()
+
+        print(loss)
         # Convert predictions and targets to CPU and detach them from the computation graph
         preds = preds.detach().cpu()
         targets = targets.detach().cpu()
 
+        print(preds)
+
         # Return predictions and targets for this batch
         return {'preds': preds, 'targets': targets}
 
-    def test_epoch_end(self, outputs):
-        # Concatenate all predictions and targets
-        all_preds = torch.cat([x['preds'] for x in outputs], dim=0)
-        all_targets = torch.cat([x['targets'] for x in outputs], dim=0)
-
-        # Compute the confusion matrix
-        cm = confusion_matrix(all_targets.numpy(), all_preds.numpy())
-
-        # Plot the confusion matrix (optional)
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.xlabel('Predicted Labels')
-        plt.ylabel('True Labels')
-        plt.title('Confusion Matrix')
-        plt.show()
-
-        # Log the confusion matrix as an image in TensorBoard (optional)
-        self.logger.experiment.add_figure(
-            "Confusion Matrix", plt.gcf(), self.current_epoch)
-
-        # Return the confusion matrix if you want to see it in the test results
-        return {'confusion_matrix': cm}
+    # def test_epoch_end(self, outputs):
+    #     pass
