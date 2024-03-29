@@ -11,9 +11,9 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
-
 # from pytorch_lightning import LightningModule
-from torchmetrics import F1Score, MaxMetric, MeanMetric, Metric, Precision, Recall
+from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
+                          Recall)
 from torchmetrics.classification.accuracy import Accuracy
 
 
@@ -51,14 +51,17 @@ class HyperNetModule(L.LightningModule):
                 self.metrics[metric_name] = getattr(self, metric_name)
 
         # Ensure learning rate is saved in hparams for easy access
-        self.learning_rate = optimizer_params.get("lr", 1e-3)  # Default to 1e-3 if not specified
+        self.learning_rate = optimizer_params.get(
+            "lr", 1e-3)  # Default to 1e-3 if not specified
 
         self.save_hyperparameters(ignore=["net"])
 
         # self.save_hyperparameters()
         # self.save_hyperparameters(logger=False, ignore=['model'])
 
-        self.validation_step_outputs = []
+        # Initialize a place to store predictions and targets
+        self.all_val_preds = []
+        self.all_val_targets = []
 
     def configure_optimizers(self):
         OptimizerClass = getattr(torch.optim, self.optimizer)
@@ -145,57 +148,13 @@ class HyperNetModule(L.LightningModule):
 
         return loss, preds, y
 
-    # def on_train_start(self) -> None:
-    #     """Lightning hook that is called when training begins."""
-    #     # Reset all custom metrics at the start of training to ensure they
-    #     # don't store results from validation sanity checks or previous runs.
-    #     for metric_name, metric_obj in self.metrics.items():
-    #         if hasattr(metric_obj, 'reset'):
-    #             metric_obj.reset()
-
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
         # Reset all custom metrics at the start of training to ensure they
         # don't store results from validation sanity checks or previous runs.
         for metric_name, metric_obj in self.metrics.items():
-            if hasattr(metric_obj, "reset"):
+            if hasattr(metric_obj, 'reset'):
                 metric_obj.reset()
-
-        # Log the initial learning rate from the optimizer
-        initial_lr = self.trainer.optimizers[0].param_groups[0]["lr"]
-        self.log(
-            "initial_learning_rate",
-            initial_lr,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-        )
-
-        # Log the number of trainable parameters in the model
-        model_parameters = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        # Check if the logger has 'add_scalar' method
-        if hasattr(self.logger.experiment, "add_scalar"):
-            self.logger.experiment.add_scalar("num_trainable_params", model_parameters, 0)
-        else:
-            # Fallback to another logging method or print
-            self.log(
-                "num_trainable_params",
-                model_parameters,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-
-        # If you have static information to log, such as model architecture details or hyperparameters
-        # Note: This is more for record-keeping; ensure your logger supports this kind of logging.
-        # self.logger.experiment.add_text("model_architecture", str(self.net))
-
-        # You can also print this information to ensure it's visible in the console output
-        print(f"Initial Learning Rate: {initial_lr}")
-        print(f"Number of Trainable Parameters: {model_parameters}")
-        # print(f"Model Architecture:\n{self.net}")
 
     def training_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
@@ -223,7 +182,8 @@ class HyperNetModule(L.LightningModule):
         targets = targets.to(device)
 
         # Log the training loss
-        self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True)
 
         # Update and log custom metrics for each step
         # and aggregate them over the epoch
@@ -231,7 +191,8 @@ class HyperNetModule(L.LightningModule):
             metric_obj.update(preds, targets)
             metric_value = metric_obj.compute()  # Ensure you compute the metric
             self.log(
-                f"train/{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=False
+                f"train/{metric_name}", metric_value, on_step=False,
+                on_epoch=True, prog_bar=False
             )
             metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
 
@@ -239,6 +200,7 @@ class HyperNetModule(L.LightningModule):
 
     def on_train_epoch_end(self) -> None:
         "Lightning hook that is called when a training epoch ends."
+        # update sampler weight
         pass
 
     def on_validation_epoch_start(self):
@@ -257,9 +219,13 @@ class HyperNetModule(L.LightningModule):
         loss, preds, targets = self._model_step(batch)
 
         # Log the validation loss for each batch
-        self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True)
 
         # Update custom metrics with predictions and targets
+        # Temporarily store predictions and targets
+        self.all_val_preds.append(preds.detach())
+        self.all_val_targets.append(targets.detach())
 
         # Update and log custom metrics for each step
         # and aggregate them over the epoch
@@ -267,30 +233,21 @@ class HyperNetModule(L.LightningModule):
             metric_obj.update(preds, targets)
             metric_value = metric_obj.compute()  # Ensure you compute the metric
             self.log(
-                f"val/{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=False
+                f"val/{metric_name}", metric_value,
+                on_step=False, on_epoch=True, prog_bar=False
             )
             metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
 
         return loss
 
     def on_validation_epoch_end(self):
-        pass
+        # Concatenate all predictions and targets across all validation batches
+        val_preds = torch.cat(self.all_val_preds, dim=0)
+        val_targets = torch.cat(self.all_val_targets, dim=0)
+
+        # Clear the lists to prepare for the next validation epoch
+        self.all_val_preds.clear()
+        self.all_val_targets.clear()
 
     def test_step(self, batch, batch_idx):
-        # Perform the forward pass and calculate the loss (if needed)
-        loss, preds, targets = self._model_step(batch)
-
-        print()
-
-        print(loss)
-        # Convert predictions and targets to CPU and detach them from the computation graph
-        preds = preds.detach().cpu()
-        targets = targets.detach().cpu()
-
-        print(preds)
-
-        # Return predictions and targets for this batch
-        return {"preds": preds, "targets": targets}
-
-    # def test_epoch_end(self, outputs):
-    #     pass
+        pass
