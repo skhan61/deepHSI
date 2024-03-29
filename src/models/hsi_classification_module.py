@@ -16,6 +16,9 @@ from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
                           Recall)
 from torchmetrics.classification.accuracy import Accuracy
 
+from src.utils.confusion_matrix import (compute_confusion_matrix,
+                                        plot_confusion_matrix)
+
 
 # TODO: rename: HyperNetModule
 class HyperNetModule(L.LightningModule):
@@ -60,8 +63,8 @@ class HyperNetModule(L.LightningModule):
         # self.save_hyperparameters(logger=False, ignore=['model'])
 
         # Initialize a place to store predictions and targets
-        self.all_val_preds = []
-        self.all_val_targets = []
+        self.all_test_preds = []
+        self.all_test_targets = []
 
     def configure_optimizers(self):
         OptimizerClass = getattr(torch.optim, self.optimizer)
@@ -222,11 +225,6 @@ class HyperNetModule(L.LightningModule):
         self.log("val/loss", loss, on_step=False,
                  on_epoch=True, prog_bar=True)
 
-        # Update custom metrics with predictions and targets
-        # Temporarily store predictions and targets
-        self.all_val_preds.append(preds.detach())
-        self.all_val_targets.append(targets.detach())
-
         # Update and log custom metrics for each step
         # and aggregate them over the epoch
         for metric_name, metric_obj in self.metrics.items():
@@ -241,13 +239,56 @@ class HyperNetModule(L.LightningModule):
         return loss
 
     def on_validation_epoch_end(self):
-        # Concatenate all predictions and targets across all validation batches
-        val_preds = torch.cat(self.all_val_preds, dim=0)
-        val_targets = torch.cat(self.all_val_targets, dim=0)
-
-        # Clear the lists to prepare for the next validation epoch
-        self.all_val_preds.clear()
-        self.all_val_targets.clear()
-
-    def test_step(self, batch, batch_idx):
         pass
+
+    def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int):
+        """Perform a single test step. This method will be called for each batch of the
+        test set.
+
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): The current 
+            batch of data in the test set.
+            batch_idx (int): The index of the current batch.
+        """
+        loss, preds, targets = self._model_step(batch)
+
+        # Log the test loss for each batch
+        self.log("test/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True)
+
+        # Update custom metrics with predictions and targets
+        # Temporarily store predictions and targets for potential further analysis
+        self.all_test_preds.append(preds.detach())
+        self.all_test_targets.append(targets.detach())
+
+        # Update and log custom metrics for each step and aggregate them over the epoch
+        for metric_name, metric_obj in self.metrics.items():
+            metric_obj.update(preds, targets)
+            metric_value = metric_obj.compute()  # Ensure you compute the metric
+            self.log(
+                f"test/{metric_name}", metric_value,
+                on_step=False, on_epoch=True, prog_bar=False
+            )
+            metric_obj.reset()  # Reset the metric for the next batch/epoch if needed
+
+        return loss
+
+    def on_test_epoch_end(self):
+        # Concatenate all predictions and targets across all test batches
+        test_preds = torch.cat(self.all_test_preds, dim=0)
+        test_targets = torch.cat(self.all_test_targets, dim=0)
+
+        # Convert predictions and targets to CPU and numpy arrays
+        test_preds_np = test_preds.cpu().numpy() if test_preds.is_cuda else test_preds.numpy()
+        test_targets_np = test_targets.cpu().numpy(
+        ) if test_targets.is_cuda else test_targets.numpy()
+
+        # Compute the confusion matrix
+        cm = compute_confusion_matrix(test_preds_np, test_targets_np)
+
+        # Plot the confusion matrix
+        plot_confusion_matrix(cm)
+
+        # Clear the lists to prepare for the next test epoch
+        self.all_test_preds.clear()
+        self.all_test_targets.clear()
