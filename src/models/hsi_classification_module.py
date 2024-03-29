@@ -16,8 +16,8 @@ from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
                           Recall)
 from torchmetrics.classification.accuracy import Accuracy
 
-from src.utils.confusion_matrix import (compute_confusion_matrix,
-                                        plot_confusion_matrix)
+# from src.utils.confusion_matrix import (compute_confusion_matrix,
+#                                         plot_confusion_matrix) ## TODO: need to remove this py file
 
 
 # TODO: rename: HyperNetModule
@@ -273,22 +273,22 @@ class HyperNetModule(L.LightningModule):
 
         return loss
 
-    def on_test_epoch_end(self):
-        # Concatenate all predictions and targets across all test batches
-        test_preds = torch.cat(self.all_test_preds, dim=0)
-        test_targets = torch.cat(self.all_test_targets, dim=0)
+    # def on_test_epoch_end(self):
+    #     # Concatenate all predictions and targets across all test batches
+    #     test_preds = torch.cat(self.all_test_preds, dim=0)
+    #     test_targets = torch.cat(self.all_test_targets, dim=0)
 
-        # Convert predictions and targets to CPU and numpy arrays
-        test_preds_np = test_preds.cpu().numpy() if test_preds.is_cuda else test_preds.numpy()
-        test_targets_np = test_targets.cpu().numpy(
-        ) if test_targets.is_cuda else test_targets.numpy()
+    #     # Convert predictions and targets to CPU and numpy arrays
+    #     test_preds_np = test_preds.cpu().numpy() if test_preds.is_cuda else test_preds.numpy()
+    #     test_targets_np = test_targets.cpu().numpy(
+    #     ) if test_targets.is_cuda else test_targets.numpy()
 
-        # Compute the confusion matrix
-        cm = compute_confusion_matrix(test_preds_np, test_targets_np)
+    #     # Compute the confusion matrix
+    #     cm = compute_confusion_matrix(test_preds_np, test_targets_np)
 
-        # Plot the confusion matrix
-        plot_confusion_matrix(cm)
+    #     # Plot the confusion matrix
+    #     plot_confusion_matrix(cm)
 
-        # Clear the lists to prepare for the next test epoch
-        self.all_test_preds.clear()
-        self.all_test_targets.clear()
+    #     # Clear the lists to prepare for the next test epoch
+    #     self.all_test_preds.clear()
+    #     self.all_test_targets.clear()
