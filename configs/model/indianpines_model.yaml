@@ -1,23 +1,26 @@
-_target_: src.models.hsi_classification_module.HSIClassificationLitModule
+_target_: deepHSI.models.hsi_classification_module.HSIClassificationLitModule
 
 net:
-  _target_: src.models.components.simple_dense_net.HSIFCModel
+  _target_: deepHSI.models.components.simple_dense_net.HSIFCModel
   input_channels: 200
   patch_size: 5
   dropout: true
   n_classes: 17
 
-optimizer: Adam
-optimizer_params:
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
   lr: 0.001
   weight_decay: 0.0
 
+# scheduler:
+#   _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+#   _partial_: true
+#   mode: min
+#   factor: 0.1
+#   patience: 10
 
-scheduler: ReduceLROnPlateau
-scheduler_params:
-  mode: min
-  factor: 0.1
-  patience: 10
+scheduler: null
 
 num_classes: 17
 

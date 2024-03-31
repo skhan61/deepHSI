@@ -132,7 +132,7 @@ jobs:
           pip install sh
 
       - name: Run tests and collect coverage
-        run: pytest --cov src # Ensure to update when changing the name of "src" folder
+        run: pytest --cov deepHSI.# Ensure to update when changing the name of "deepHSI. folder
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

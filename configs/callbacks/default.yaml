@@ -4,6 +4,7 @@ defaults:
   - model_summary
   - rich_progress_bar
   - _self_
+  - custom_callback
 
 model_checkpoint:
   dirpath: ${paths.output_dir}/checkpoints
@@ -20,3 +21,5 @@ early_stopping:
 
 model_summary:
   max_depth: -1
+
+

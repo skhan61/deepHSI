@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from src.models.components.simple_dense_net import \
+from deepHSI.models.components.simple_dense_net import \
     HSIFCModel  # Update the import path as needed
 
 

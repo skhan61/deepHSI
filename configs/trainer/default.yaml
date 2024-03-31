@@ -2,18 +2,50 @@ _target_: lightning.pytorch.trainer.Trainer
 
 default_root_dir: ${paths.output_dir}
 
-min_epochs: 1 # prevents early stopping
-max_epochs: 10
+# Basic training control
+min_epochs: 1  # Prevents early stopping by specifying minimum number of epochs
+max_epochs: null  # Maximum number of epochs for training
 
-accelerator: auto
-devices: 1
+# Hardware setup
+accelerator: auto  # Automatically choose the available hardware (GPU, TPU, etc.)
+devices: 1  # Number of devices to train on (e.g., number of GPUs)
+strategy: auto  # Strategy for distributed training (e.g., "ddp" for Distributed Data Parallel)
+num_nodes: 1  # Number of nodes for distributed training
 
-# mixed precision for extra speed-up
-# precision: 16
+# Precision and performance settings
+precision: 32  # Full precision (32), can be set to 16 for mixed precision
+deterministic: False  # Ensure deterministic results, useful for reproducibility
+benchmark: False  # If True, enables the CUDNN benchmark
 
-# perform a validation loop every N training epochs
-check_val_every_n_epoch: 1
+# Logging and checkpointing
+logger: True  # Enable logging (can be customized or set to False to disable)
+enable_checkpointing: True  # Enable model checkpointing
+enable_progress_bar: True  # Show the training progress bar
+enable_model_summary: True  # Print a summary of the model
+log_every_n_steps: 50  # Log metrics every N training steps
 
-# set True to to ensure deterministic results
-# makes training slower but gives more reproducibility than just setting seeds
-deterministic: False
+# Gradient control
+accumulate_grad_batches: 1  # Number of batches for gradient accumulation
+gradient_clip_val: 0.0  # Value for gradient clipping (0 disables clipping)
+gradient_clip_algorithm: norm  # Algorithm for gradient clipping ("value" or "norm")
+
+# Data loading settings
+limit_train_batches: 1.0  # Fraction or number of training batches to use per epoch
+limit_val_batches: 1.0  # Fraction or number of validation batches to use
+limit_test_batches: 1.0  # Fraction or number of test batches to use
+limit_predict_batches: 1.0  # Fraction or number of prediction batches to use
+
+# Validation settings
+check_val_every_n_epoch: 1  # Perform validation every N epochs
+val_check_interval: 1.0  # Interval for validation within an epoch (fraction or number of batches)
+
+# Miscellaneous settings
+num_sanity_val_steps: 2  # Number of validation steps for the sanity check before training starts
+fast_dev_run: False  # Quick run for debugging purposes (True runs 1 train, val, and test batch)
+overfit_batches: 0.0  # Overfit on a fraction of data for debugging (0 disables)
+detect_anomaly: False  # Enable anomaly detection to find NaNs or Infs in the computational graph
+
+# Advanced features (uncomment and customize as needed)
+# profiler: null  # Enable profiling to diagnose performance bottlenecks
+# plugins: null  # Custom plugins for training, like advanced precision settings
+# sync_batchnorm: False  # Synchronize batch norm layers across all devices

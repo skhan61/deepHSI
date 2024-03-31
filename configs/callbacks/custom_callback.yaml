@@ -1,2 +1,2 @@
 confusion_matrix_callback:
-  _target_: src.utils.confusion_matrix_callback.ConfusionMatrixLogger
+  _target_: deepHSI.utils.confusion_matrix_callback.ConfusionMatrixLogger

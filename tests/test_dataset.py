@@ -6,8 +6,9 @@ import numpy as np
 import pytest
 import torch
 
-from src.dataset.components.hyperspectral_dataset import HyperspectralDataset
-from src.dataset.components.utils import *
+from deepHSI.dataset.components.hyperspectral_dataset import \
+    HyperspectralDataset
+from deepHSI.dataset.components.utils import *
 
 
 # @pytest.fixture(params=DATASETS_CONFIG.keys())

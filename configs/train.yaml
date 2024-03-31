@@ -6,23 +6,24 @@ defaults:
   - _self_
   - data: null # indianpines_datamodule
   - model: null # indianpines_model
-  - callbacks: default
-  - logger: csv # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
-  - trainer: gpu
-  - paths: default
-  - extras: default
-  - hydra: default
+  
+  - callbacks: default.yaml
+  - logger: wandb.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - trainer: gpu.yaml
+  - paths: default.yaml
+  - extras: default.yaml
+  - hydra: default.yaml
 
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
-  - experiment: indianpines_experiment
+  - experiment: null # data and model is defined in data.yaml and model.yaml 
 
   # config for hyperparameter optimization
   - hparams_search: null
 
   # optional local config for machine/user specific settings
   # it's optional since it doesn't need to exist and is excluded from version control
-  - optional local: default
+  - optional local: default.yaml
 
   # debugging config (enable through command line, e.g. `python train.py debug=default)
   - debug: null
@@ -34,7 +35,7 @@ task_name: "train"
 # you can overwrite this in experiment configs
 # overwrite from command line with `python train.py 
 # tags="[first_tag, second_tag]"`
-tags: ["dev"]
+# tags: "[idnianpines, baseline, without-lr-schedular]"
 
 # set False to skip model training
 train: True
@@ -47,4 +48,5 @@ test: False
 ckpt_path: null
 
 # seed for random number generators in pytorch, numpy and python.random
-seed: null
+
+seed: 12345 # for reproducibility

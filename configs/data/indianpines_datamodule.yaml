@@ -1,9 +1,9 @@
-# /home/sayem/Desktop/deepHSI/src/dataset/remote_sensing_datasets/indianpine.py
+# /home/sayem/Desktop/deepHSI/deepHSI.dataset/remote_sensing_datasets/indianpine.py
 
 # Configuration for Indian Pine dataset using PyTorch Lightning DataModule
 
 # IndianPinesDataModule:
-_target_: src.dataset.remote_sensing_datasets.indianpine.IndianPinesDataModule
+_target_: deepHSI.dataset.remote_sensing_datasets.indianpine.IndianPinesDataModule
 data_dir: ${paths.data_dir}
 transform: None # No default transforms, set to None
 
@@ -20,5 +20,5 @@ transform: None # No default transforms, set to None
 hyperparams:
   batch_size: 16
   patch_size: 5  # Patch size for Indian Pines
-  num_workers: 4
+  num_workers: 15
   pin_memory: True  # Use pin_memory for faster data transfer to CUDA devices

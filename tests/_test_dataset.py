@@ -5,8 +5,9 @@ import numpy as np
 import pytest
 import torch
 
-from src.dataset.components.hyperspectral_dataset import HyperspectralDataset
-from src.dataset.components.utils import *
+from deepHSI.dataset.components.hyperspectral_dataset import \
+    HyperspectralDataset
+from deepHSI.dataset.components.utils import *
 
 
 # @pytest.fixture(params=DATASETS_CONFIG.keys())
@@ -30,7 +31,8 @@ def test_hyperspectral_dataset_integration(setup_dataset):
     download_dataset(dataset_name, target_folder)
 
     # Load the dataset components
-    img, gt, label_values, ignored_labels, rgb_bands, _ = load_dataset(dataset_name, target_folder)
+    img, gt, label_values, ignored_labels, rgb_bands, _ = load_dataset(
+        dataset_name, target_folder)
 
     # # Use the loaded data to build the dataset for training/testing
     # input_imgs, levels = build_dataset(img, gt)
@@ -68,7 +70,8 @@ def test_hyperspectral_dataset_integration(setup_dataset):
     dataset = HyperspectralDataset(img, gt, **hyperparams)
 
     # Initial assertions as provided before
-    assert len(dataset) > 0, "The HyperspectralDataset instance should not be empty"
+    assert len(
+        dataset) > 0, "The HyperspectralDataset instance should not be empty"
     assert all(
         label not in dataset.ignored_labels for label in dataset.labels
     ), "Ignored labels should not be present in the dataset labels"
@@ -87,7 +90,8 @@ def test_hyperspectral_dataset_integration(setup_dataset):
     original_data, _ = dataset[0]
     # Assuming augmentation randomness can lead to different results
     augmented_data, _ = dataset[0]
-    assert not torch.equal(original_data, augmented_data), "Augmentation should modify the data"
+    assert not torch.equal(
+        original_data, augmented_data), "Augmentation should modify the data"
 
     # Test label consistency
     for i in range(len(dataset)):
@@ -97,7 +101,8 @@ def test_hyperspectral_dataset_integration(setup_dataset):
                 label == dataset.labels[i]
             ), "Label should match the center pixel for the corresponding patch"
         else:
-            assert label in np.unique(patch), "Label should be present in the patch"
+            assert label in np.unique(
+                patch), "Label should be present in the patch"
 
     # Test DataLoader integration
     dataloader = DataLoader(dataset, batch_size=10, shuffle=True)

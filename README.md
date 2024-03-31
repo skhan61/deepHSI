@@ -53,14 +53,14 @@ The `deepHSI` toolbox streamlines the process of using deep learning for hypersp
 
 Start by preparing your hyperspectral imaging data. `deepHSI` provides a flexible framework for integrating custom datasets.
 
-- **Custom Dataset Class**: Implement your dataset as a PyTorch `Dataset`. See the [data/mnist_datamodule.py](src/data/mnist_datamodule.py) as an example.
-- **Data Module**: Leverage PyTorch Lightning's `DataModule` to organize your training, validation, and test data splits. Refer to our [MNIST DataModule](src/data/mnist_datamodule.py) for a template.
+- **Custom Dataset Class**: Implement your dataset as a PyTorch `Dataset`. See the [data/mnist_datamodule.py](deepHSI.data/mnist_datamodule.py) as an example.
+- **Data Module**: Leverage PyTorch Lightning's `DataModule` to organize your training, validation, and test data splits. Refer to our [MNIST DataModule](deepHSI.data/mnist_datamodule.py) for a template.
 
 ### 2. Model Development
 
 Develop your model architecture tailored for hyperspectral data analysis.
 
-- **Defining Models**: Create models by extending `torch.nn.Module`. Check out [src/models/mnist_module.py](src/models/mnist_module.py) for a basic structure.
+- **Defining Models**: Create models by extending `torch.nn.Module`. Check out [deepHSI.models/mnist_module.py](deepHSI.models/mnist_module.py) for a basic structure.
 - **Configuration**: Utilize Hydra to configure model parameters dynamically. Example configuration can be found in [configs/model/mnist.yaml](configs/model/mnist.yaml).
 
 ### 3. Testing and Validation
@@ -88,7 +88,7 @@ Execute your training runs with the flexibility to switch between configurations
 
 After training, evaluate your models on the test dataset to assess their performance.
 
-- **Evaluation Script**: Use the provided evaluation script `src/eval.py` with the desired model checkpoint to evaluate on the test set.
+- **Evaluation Script**: Use the provided evaluation script `deepHSI.eval.py` with the desired model checkpoint to evaluate on the test set.
 
 This workflow ensures a modular and configurable approach to deep learning with hyperspectral imaging, making `deepHSI` a versatile toolbox for researchers and practitioners.
 
@@ -99,7 +99,7 @@ This workflow ensures a modular and configurable approach to deep learning with 
 To train a model with the default configuration, execute:
 
 ```shell
-python src/train.py
+python deepHSI.train.py
 ```
 
 ### Custom Configuration
@@ -107,7 +107,7 @@ python src/train.py
 To customize the training parameters or use an alternative configuration:
 
 ```shell
-python src/train.py model=my_custom_model data=my_custom_dataset
+python deepHSI.train.py model=my_custom_model data=my_custom_dataset
 ```
 
 ### Evaluation
@@ -115,7 +115,7 @@ python src/train.py model=my_custom_model data=my_custom_dataset
 Evaluate a model on the test dataset:
 
 ```shell
-python src/evaluate.py model=my_custom_model checkpoint=path/to/model.ckpt
+python deepHSI.evaluate.py model=my_custom_model checkpoint=path/to/model.ckpt
 ```
 
 ## **Advanced Usage**
@@ -125,7 +125,7 @@ python src/evaluate.py model=my_custom_model checkpoint=path/to/model.ckpt
 Conduct hyperparameter tuning using Hydra's multi-run capability:
 
 ```shell
-python src/train.py -m hparams_search=my_hyperparameter_search.yaml
+python deepHSI.train.py -m hparams_search=my_hyperparameter_search.yaml
 ```
 
 ### Distributed Training
@@ -133,7 +133,7 @@ python src/train.py -m hparams_search=my_hyperparameter_search.yaml
 Train on multiple GPUs using Distributed Data Parallel (DDP):
 
 ```shell
-python src/train.py trainer=ddp trainer.gpus=4
+python deepHSI.train.py trainer=ddp trainer.gpus=4
 ```
 
 ## **Contributing**

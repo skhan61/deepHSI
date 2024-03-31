@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from src.dataset.medical_datasets.bloodHSI import BloodDetectionHSIDataModule
+from deepHSI.dataset.medical_datasets.bloodHSI import \
+    BloodDetectionHSIDataModule
 
 
 def test_blood_detection_hsidatamodule():
