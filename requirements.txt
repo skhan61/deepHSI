@@ -84,7 +84,7 @@ pickleshare @ file:///home/conda/feedstock_root/build_artifacts/pickleshare_1602
 pillow==10.2.0
 platformdirs @ file:///home/conda/feedstock_root/build_artifacts/platformdirs_1706713388748/work
 pluggy==1.4.0
-pre-commit==3.6.2
+pre-commit==3.7.0
 prettytable==3.10.0
 prompt-toolkit @ file:///home/conda/feedstock_root/build_artifacts/prompt-toolkit_1702399386289/work
 protobuf==4.25.3
