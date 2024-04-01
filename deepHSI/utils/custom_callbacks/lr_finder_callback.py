@@ -14,8 +14,6 @@ class InitialLRFinder(LearningRateFinder):
         # Run the LR finder only at the start of the first training epoch
         if trainer.current_epoch == 0:
             self.lr_find(trainer, pl_module)
-            # # To prevent multiple runs, disable the callback after the first use
-            # trainer.remove_callback(self)
 
 
 class DynamicLRFinder(LearningRateFinder):
