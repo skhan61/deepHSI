@@ -1,7 +1,7 @@
 _target_: deepHSI.models.hsi_classification_module.HSIClassificationLitModule
 
 net:
-  _target_: deepHSI.models.components.simple_dense_net.HSIFCModel
+  _target_: deepHSI.models.architectures.simple_dense_net.HSIFCModel
   input_channels: 200
   patch_size: 5
   dropout: true

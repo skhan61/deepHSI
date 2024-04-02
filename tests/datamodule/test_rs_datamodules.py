@@ -4,15 +4,17 @@ from pathlib import Path
 import pytest
 import torch
 
-from deepHSI.dataset.remote_sensing_datasets.botswana import BotswanaDataModule
-from deepHSI.dataset.remote_sensing_datasets.indianpine import \
-    IndianPinesDataModule
-from deepHSI.dataset.remote_sensing_datasets.ksc import KSCDataModule
-from deepHSI.dataset.remote_sensing_datasets.paviaC import PaviaCDataModule
-from deepHSI.dataset.remote_sensing_datasets.paviaU import PaviaUDataModule
-from deepHSI.dataset.remote_sensing_datasets.salinas import SalinasDataModule
+from deepHSI.datamodule.remote_sensing_datasets import *
 
-# from deepHSI.dataset.hyperspectral_datamodule import *  # (PaviaUDataModule,
+# from deepHSI.datamodule.remote_sensing_datasets.indianpine import \
+#     IndianPinesDataModule
+# from deepHSI.datamodule.remote_sensing_datasets.ksc import KSCDataModule
+# from deepHSI.datamodule.remote_sensing_datasets.paviaC import PaviaCDataModule
+# from deepHSI.datamodule.remote_sensing_datasets.paviaU import PaviaUDataModule
+# from deepHSI.datamodule.remote_sensing_datasets.salinas import \
+#     SalinasDataModule
+
+# from deepHSI.datamodule import *  # (PaviaUDataModule,
 
 # #   SalinasDataModule)
 

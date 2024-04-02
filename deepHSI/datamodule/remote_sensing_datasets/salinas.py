@@ -9,19 +9,17 @@ import pytorch_lightning as pl
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
-from deepHSI.dataset.components.hyperspectral_dataset import \
-    HyperspectralDataset
-from deepHSI.dataset.components.utils import (download_dataset,
-                                              download_from_zenodo,
-                                              load_dataset)
-from deepHSI.dataset.hyperspectral_datamodule import \
-    BaseHyperspectralDataModule
+from deepHSI.datamodule import BaseHyperspectralDataModule
+from deepHSI.datamodule.components import HyperspectralDataset
+from deepHSI.datamodule.components.utils import (download_dataset,
+                                                 download_from_zenodo,
+                                                 load_dataset)
 
 
-class IndianPinesDataModule(BaseHyperspectralDataModule):
+class SalinasDataModule(BaseHyperspectralDataModule):
     def __init__(self, data_dir, transform=None, hyperparams=None):
         """
-        Initializes the IndianPinesDataModule with the provided parameters.
+        Initializes the SalinasDataModule with the provided parameters.
 
         Args:
             data_dir (str): The directory path for the dataset.
@@ -29,7 +27,7 @@ class IndianPinesDataModule(BaseHyperspectralDataModule):
             hyperparams (dict, optional): Dictionary containing additional hyperparameters for the dataset or model,
                                           including 'batch_size', 'patch_size', and 'num_workers'.
         """
-        super().__init__(data_dir, "IndianPines",
+        super().__init__(data_dir, "Salinas",
                          transform=transform, hyperparams=hyperparams)
 
     def prepare_data(self):

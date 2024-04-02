@@ -9,11 +9,10 @@ import numpy as np
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
-from deepHSI.dataset.components.hyperspectral_dataset import \
-    HyperspectralDataset
-from deepHSI.dataset.components.utils import (download_dataset,
-                                              download_from_zenodo,
-                                              load_dataset)
+from deepHSI.datamodule.components import HyperspectralDataset
+from deepHSI.datamodule.components.utils import (download_dataset,
+                                                 download_from_zenodo,
+                                                 load_dataset)
 
 
 class BaseHyperspectralDataModule(L.LightningDataModule):

@@ -10,7 +10,7 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
-from torch.optim.lr_scheduler import LinearLR, SequentialLR
+# from torch.optim.lr_scheduler import LinearLR, SequentialLR
 # from pytorch_lightning import LightningModule
 from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
                           Recall)
@@ -53,7 +53,7 @@ class HSIClassificationLitModule(L.LightningModule):
         # # Ensure learning rate is saved in hparams for easy access
         # Default to 1e-3 if not specified
         self.learning_rate = optimizer.keywords.get("lr", 1e-3)
-        print(self.learning_rate)
+        # print(self.learning_rate)
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
