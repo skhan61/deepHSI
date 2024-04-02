@@ -42,7 +42,8 @@ class HyperspectralCNNDetector(HSIModelBase):
 
     def __init__(self, input_channels, n_classes, patch_size=27, n_planes=32, dropout=False):
         """
-        Initializes the HyperspectralCNNDetector model with the specified parameters.
+        Initializes the HyperspectralCNNDetector model 
+        with the specified parameters.
         """
         super(HyperspectralCNNDetector, self).__init__(
             input_channels, patch_size, n_classes, dropout)
