@@ -1,4 +1,4 @@
-_target_: deepHSI.models.hsi_classification_module.HSIClassificationLitModule
+_target_: deepHSI.models.hsi_classification_module.HSIClassificationModule
 
 net:
   _target_: deepHSI.models.architectures.simple_dense_net.HSIFCModel

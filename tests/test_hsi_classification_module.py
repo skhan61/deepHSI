@@ -4,7 +4,7 @@ from torch.optim import Adam
 from torchmetrics import Accuracy
 
 from deepHSI.models.hsi_classification_module import \
-    HSIClassificationLitModule  # Replace with your actual import
+    HSIClassificationModule  # Replace with your actual import
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def lit_module(
     simple_scheduler_params,
     simple_custom_metrics,
 ):
-    return HSIClassificationLitModule(
+    return HSIClassificationModule(
         model=simple_model,
         optimizer_cls=simple_optimizer,
         optimizer_params={"lr": 0.001},

@@ -18,7 +18,7 @@ from torchmetrics.classification.accuracy import Accuracy
 
 
 # TODO: rename: HyperNetModule
-class HSIClassificationLitModule(L.LightningModule):
+class HSIClassificationModule(L.LightningModule):
     def __init__(
         self,
         net: torch.nn.Module,
