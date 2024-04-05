@@ -8,7 +8,7 @@ Welcome to the **Experiment** folder, the cornerstone of our project where innov
 Below is the structure of the `experiment` directory, providing a clear view of its organization:
 
 ```plaintext
-experiment/
+experiments/
 └── experiment_1/
     ├── config/
     │   ├── model/

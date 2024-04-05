@@ -16,10 +16,50 @@ from .base_model import HSIModelBase
 
 class HSIFCModel(HSIModelBase):
     """
-    Fully Connected Neural Network for Hyperspectral Image Classification.
-    Designed to work with 3D input tensors representing 
-    hyperspectral image patches.
-    """
+    A Fully Connected (FC) Neural Network model designed specifically for the classification of 
+    hyperspectral image (HSI) data. The model takes 3D input tensors representing hyperspectral 
+    image patches and processes them through a series of fully connected layers to perform classification. 
+    The model architecture includes four fully connected layers with ReLU activations and optional dropout for 
+    regularization.
+
+    The model is built upon the HSIModelBase to leverage common initialization routines and utilities tailored 
+    for HSI analysis. This design facilitates easy integration into HSI processing pipelines and ensures 
+    compatibility with standard HSI preprocessing and data handling practices.
+
+    Parameters:
+        input_channels (int): The number of spectral bands in each input HSI patch.
+        patch_size (int): The spatial dimensions (height and width) of the input HSI patch, assumed to be square.
+        n_classes (int): The number of classes for the classification task.
+        dropout (bool, optional): If True, dropout layers are added after each fully connected layer except 
+        the last one, for regularization. Default is False.
+        **kwargs: Additional keyword arguments passed to the base class constructor (HSIModelBase).
+
+    Attributes:
+        fc1, fc2, fc3, fc4 (nn.Linear): Fully connected layers comprising the network architecture.
+        dropout (nn.Dropout, optional): Dropout layer applied after each fully connected layer except the last one, 
+                                        included if `dropout=True`.
+
+    Example:
+        # Initialize the FC model for a HSI patch with 102 spectral bands, 
+        # 10x10 spatial dimensions, and 9 target classes.
+        >>> model = HSIFCModel(input_channels=102, patch_size=10, n_classes=9, dropout=True)
+
+        # Creating a dummy input tensor with dimensions: [Batch Size, Channels, Height, Width]
+        # Batch Size: 64, Channels (Spectral Bands): 102, Height: 10, Width: 10
+        >>> inputs = torch.rand(64, 1, 102, 10, 10)  # Input shape: torch.Size([64, 1, 102, 10, 10])
+
+        # Forward pass: Pass the HSI patches through the model to obtain class logits
+        >>> output = model(inputs)  # Output shape (logits): torch.Size([64, 9])
+
+        # The output is a tensor of shape [Batch Size, Number of Classes], where each element 
+        # represents the logit scores for each class, for each HSI patch in the batch.
+
+    Note:
+        The input tensor to the model should be 4-dimensional, following the format 
+        [Batch Size, Channels, Height, Width], where 
+        'Channels' corresponds to the spectral bands of the HSI patch. 
+        The model internally flattens the spatial and spectral 
+        dimensions before passing them through the fully connected layers.    """
 
     def __init__(self, input_channels, patch_size, n_classes, dropout=False, **kwargs):
         """
@@ -27,7 +67,8 @@ class HSIFCModel(HSIModelBase):
         Inherits from HSIModelBase to make use of common initialization and utilities.
         """
         super(HSIFCModel, self).__init__(input_channels,
-                                         patch_size, n_classes, dropout=dropout, **kwargs)
+                                         patch_size, n_classes,
+                                         dropout=dropout, **kwargs)
 
         # Calculate the total number of features after flattening
         input_features = self.input_channels * self.patch_size * self.patch_size
@@ -69,74 +110,3 @@ class HSIFCModel(HSIModelBase):
             nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
-
-# class HSIFCResNetModel(HSIFCModel):
-#     """
-#     Extends HSIFCModel with a ResNet backbone for feature extraction
-#     from hyperspectral image patches.
-#     """
-
-#     def __init__(self, input_channels, patch_size, n_classes,
-#                  dropout=False, base_model='resnet50'):
-#         """
-#         Initializes the HSIFCResNetModel.
-
-#         Args:
-#             input_channels (int): Number of input spectral channels.
-#             patch_size (int): The size of the spatial dimensions
-#             (assumed square patches).
-#             n_classes (int): Number of output classes.
-#             dropout (bool, optional): If True, applies dropout with p=0.5.
-#             Defaults to False.
-#             base_model (str, optional): Specifies the ResNet variant to use.
-#             Defaults to 'resnet50'.
-#         """
-#         # Initialize the HSIFCModel
-#         super(HSIFCResNetModel, self).__init__(
-#             input_channels, patch_size, n_classes, dropout)
-
-#         # Load the specified base ResNet model
-#         # Load the specified base ResNet model with new `weights` argument
-#         if base_model == 'resnet50':
-#             self.resnet_model = models.resnet50(
-#                 weights=ResNet50_Weights.IMAGENET1K_V1)
-#         # Add other ResNet variants as needed
-#         # elif base_model == 'resnet18':
-#         #     self.resnet_model = models.resnet18(pretrained=True)
-#         # ...
-
-#         # Adjust the first convolutional layer of the ResNet model to
-#         # accept hyperspectral input
-#         self.resnet_model.conv1 = nn.Conv2d(input_channels, 64, kernel_size=(
-#             7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-
-#         # Replace the classifier of the ResNet model with a new one
-#         num_features = self.resnet_model.fc.in_features
-#         self.resnet_model.fc = nn.Identity()
-
-#         # Modify the first fully connected layer of HSIFCModel to
-#         # accept features extracted by ResNet
-#         self.fc1 = nn.Linear(num_features, 2048)
-
-#     def forward(self, x):
-#         """
-#         Forward pass of the network.
-
-#         Args:
-#             x (torch.Tensor): Input tensor with shape
-#             [batch_size, channels, height, width].
-
-#         Returns:
-#             torch.Tensor: Output logits.
-#         """
-#         # Check if input is 5D and remove the extra dimension
-#         if x.dim() == 5:
-#             # Assuming the extra dimension is the second one, which is usually 1
-#             x = x.squeeze(1)  # This removes dimensions of size 1 at index 1
-
-#         # Now x should be [batch_size, channels, height, width]
-#         # Proceed with the ResNet model
-#         x = self.resnet_model(x)
-
-#         # Pass the features through the fully connected layers for classification
-#         return super().forward(x)

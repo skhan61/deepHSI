@@ -7,27 +7,47 @@ from .base_model import HSIModelBase
 
 
 class HyperspectralCNNDetector(HSIModelBase):
-    """
-    A Convolutional Neural Network (CNN) architecture for hyperspectral image detection and classification, 
-    inspired by the work of Yushi Chen, Hanlu Jiang, Chunyang Li, Xiuping Jia, and Pedram Ghamisi in their paper:
+    """A CNN for hyperspectral image detection and classification.
 
-    "Deep Feature Extraction and Classification of Hyperspectral Images Based on Convolutional Neural Networks."
+    This model extracts deep features from hyperspectral images to perform classification tasks. Inspired by Chen et al.,
+    it uses 3D convolutional layers to process both spatial and spectral information. The design is adapted to suit
+    different application needs and computational constraints, inheriting from HSIModelBase for a standardized model
+    interface.
 
-    Published in IEEE Transactions on Geoscience and Remote Sensing (TGRS), Volume 55, Issue 10, October 2017.
+    Attributes:
+        conv1: The first 3D convolutional layer (nn.Conv3d).
+        conv2: The second 3D convolutional layer (nn.Conv3d).
+        conv3: The third 3D convolutional layer (nn.Conv3d).
+        pool1: The first max-pooling layer (nn.MaxPool3d).
+        pool2: The second max-pooling layer (nn.MaxPool3d).
+        fc: A fully connected layer for classification (nn.Linear).
+        dropout: An optional dropout layer for regularization (nn.Dropout).
 
-    This model is designed to extract deep features from hyperspectral images and perform classification tasks,
-    leveraging the unique spatial-spectral characteristics of hyperspectral data. The original architecture
-    proposed by Chen et al. introduces a novel approach to processing hyperspectral images using 3D convolutional
-    layers, aiming to effectively capture both spatial and spectral information inherent in the data.
+    Args:
+        input_channels (int): The number of spectral bands in the input image.
+        n_classes (int): The number of target classes for the output.
+        patch_size (int, optional): The spatial size of the processed patches. Defaults to 27.
+        n_planes (int, optional): The number of output channels (feature maps) in the convolutional layers. Defaults to 32.
+        dropout (bool, optional): Whether to include dropout for regularization. Defaults to False.
 
-    The implementation herein is adapted from the described architecture, incorporating modifications to suit
-    specific application needs and computational constraints. This class inherits from HSIModelBase, providing
-    a standardized interface for models tailored to hyperspectral image analysis.
+    Example:
+        >>> model = HyperspectralCNNDetector(input_channels=102, n_classes=9, \
+                                                patch_size=27, n_planes=32, dropout=False)
+        >>> inputs = torch.rand(64, 1, 102, 10, 10)  # [Batch size, 1, Spectral bands, Height, Width]
+        >>> output = model(inputs)
+        >>> print(f'Input shape: {inputs.shape}')
+        >>> print(f'Output shape: {output.shape}')
+        # Input shape: torch.Size([64, 1, 102, 10, 10])
+        # Output shape: torch.Size([64, 9])
+
+    Note:
+        Input tensor should be 4D with the shape [Batch Size, 1, Spectral Bands, Height, Width]. 
+        The output tensor shape is [Batch Size, Number of Classes], representing class probabilities.
 
     Reference:
-    Chen, Y., Jiang, H., Li, C., Jia, X., & Ghamisi, P. (2017). Deep Feature Extraction and Classification of Hyperspectral 
-    Images Based on Convolutional Neural Networks. IEEE Transactions on Geoscience and Remote Sensing, 55(10), 6239-6255.
-    DOI: 10.1109/TGRS.2017.2719629
+        Chen, Y., Jiang, H., Li, C., Jia, X., & Ghamisi, P. (2017). Deep Feature Extraction and Classification of 
+        Hyperspectral Images Based on Convolutional Neural Networks. IEEE Transactions on Geoscience and Remote Sensing,
+        55(10), 6239-6255. DOI: 10.1109/TGRS.2017.2719629
     """
 
     @staticmethod

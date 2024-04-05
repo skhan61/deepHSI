@@ -4,13 +4,23 @@
 # python train.py experiment=indianpines_experiment
 
 defaults:
-  - override /data: indianpines_datamodule
-  - override /model: indianpines_model  # Ensure this points to the correct model config file
+  - override /data: datamodule
+  - override /model: model  # Ensure this points to the correct model config file
   # - override /callbacks: default
   # - override /trainer: default
 
 # All parameters below will be merged with parameters from default configurations set above
 # This allows you to overwrite only specified parameters
+
+# net_a.yaml
+model:
+  net:
+    _target_: deepHSI.models.architectures.HSIFCModel
+    input_channels: 200
+    patch_size: 5
+    dropout: true
+    n_classes: 17
+
 
 tags: ["idnianpines", "baseline", "without-lr-schedular"]
 

@@ -3,7 +3,7 @@
 # Configuration for Indian Pine datamodule.using PyTorch Lightning DataModule
 
 # IndianPinesDataModule:
-_target_: deepHSI.datamodule.remote_sensing_datasets.indianpine.IndianPinesDataModule
+_target_: deepHSI.datamodule.remote_sensing_datasets.IndianPinesDataModule
 data_dir: ${paths.data_dir}
 transform: None # No default transforms, set to None
 

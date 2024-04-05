@@ -1,11 +1,18 @@
-_target_: deepHSI.models.hsi_classification_module.HSIClassificationModule
+# # In model.yaml
+# defaults:
+#   - _self_
+#   - net: net_a  # Default network architecture
 
-net:
-  _target_: deepHSI.models.architectures.simple_dense_net.HSIFCModel
-  input_channels: 200
-  patch_size: 5
-  dropout: true
-  n_classes: 17
+# You can add other model-related configurations here if needed
+_target_: deepHSI.models.HSIClassificationModule
+
+net: null
+
+  # _target_: deepHSI.models.architectures.HSIFCModel
+  # input_channels: 200
+  # patch_size: 5
+  # dropout: true
+  # n_classes: 17
 
 optimizer:
   _target_: torch.optim.Adam
