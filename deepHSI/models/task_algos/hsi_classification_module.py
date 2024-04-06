@@ -1,7 +1,7 @@
 import functools
 import importlib
 import inspect  # Add this import statement at the beginning of your script
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import lightning as L
 import matplotlib.pyplot as plt
@@ -10,6 +10,8 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
+from torch.optim.lr_scheduler import _LRScheduler
+from torch.optim.optimizer import Optimizer
 # from torch.optim.lr_scheduler import LinearLR, SequentialLR
 # from pytorch_lightning import LightningModule
 from torchmetrics import (F1Score, MaxMetric, MeanMetric, Metric, Precision,
@@ -23,40 +25,28 @@ class HSIClassificationModule(BaseModule):
     def __init__(
         self,
         net: torch.nn.Module,
-        optimizer: torch.optim.Optimizer,
-        scheduler: torch.optim.lr_scheduler,
-        # optimizer_params: Dict[str, Any],
         loss_fn: torch.nn.Module = F.cross_entropy,
-        # scheduler_params: Optional[Dict[str, Any]] = None,
-        num_classes: int = None,
-        # New parameter for custom metrics
+        num_classes: Optional[int] = None,
         custom_metrics: Optional[Dict[str, Metric]] = None,
+        **kwargs,  # kwargs will include optimizer and scheduler among other possible arguments
     ):
-        super().__init__(optimizer=optimizer, scheduler=scheduler)
+        # Pass kwargs to BaseModule, which includes optimizer and scheduler
+        super().__init__(**kwargs)
+
+        # Initialize specific attributes for HSIClassificationModule
         self.net = net
         self.loss_fn = loss_fn
-
         self.num_classes = num_classes
 
-        # Setup metrics
+        # Initialize custom metrics if provided
         self.metrics = {}
-        # Initialize custom metrics as attributes
         if custom_metrics:
-            for metric_name, metric_obj in custom_metrics.items():
-                # Set each metric as an attribute
-                setattr(self, metric_name, metric_obj)
-                # Reference the attribute in the metrics dict
-                self.metrics[metric_name] = getattr(self, metric_name)
+            for name, metric in custom_metrics.items():
+                setattr(self, name, metric)
+                self.metrics[name] = getattr(self, name)
 
-        # # # Ensure learning rate is saved in hparams for easy access
-        # # Default to 1e-3 if not specified
-        # self.learning_rate = optimizer.keywords.get("lr", 1e-3)
-        # # print(self.learning_rate)
-
-        # this line allows to access init params with 'self.hparams' attribute
-        # also ensures init params will be stored in ckpt
-        self.save_hyperparameters(logger=False, ignore=["net"])
-
+        # Optionally, save hyperparameters, excluding 'net' if it's not serializable
+        self.save_hyperparameters(logger=False, ignore=['net'])
         # self.save_hyperparameters()
         # self.save_hyperparameters(logger=False, ignore=['model'])
 
