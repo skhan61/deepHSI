@@ -14,8 +14,10 @@ from .base_class_module import BaseModule
 class VAEPyroModule(PyroModule):
     def __init__(self, encoder, decoder, latent_dim):
         super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
+        # self.encoder = encoder
+        # self.decoder = decoder
+        self.encoder = encoder(latent_dim)
+        self.decoder = decoder(latent_dim)
         self.latent_dim = latent_dim
 
     def model(self, x):
@@ -79,7 +81,7 @@ class VAEModule(BaseModule):
         # Check if a scheduler is provided and initialize it
         if self.scheduler_constructor is not None:
             # Wrap the PyTorch scheduler with Pyro's scheduler wrapper
-            # The 'optim_args' dictionary is required for PyroLRScheduler 
+            # The 'optim_args' dictionary is required for PyroLRScheduler
             # and contains the optimizer arguments
             self.scheduler = self.scheduler_constructor(
                 self.optimizer, **self.scheduler_params)
