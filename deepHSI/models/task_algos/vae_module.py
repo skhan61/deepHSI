@@ -23,6 +23,32 @@ from .base_class_module import BaseModule
 
 
 class VAEPyroModule(PyroModule):
+    """
+    A PyTorch Module for a Variational Autoencoder (VAE) utilizing Pyro probabilistic models.
+
+    Attributes:
+        encoder (nn.Module): The encoder network that maps input data to the latent space.
+        decoder (nn.Module): The decoder network that maps latent space vectors back to the input data space.
+        latent_dim (int): Dimensionality of the latent space.
+        device (torch.device): Device on which the module's tensors will be allocated.
+
+    Methods:
+        model(x): Defines the generative model and samples from the prior and likelihood distributions.
+        guide(x): Defines the variational approximation (guide) to the posterior.
+        reconstruct_img(x): Reconstructs input data from the latent space representation.
+        reconstruction_loss(x): Computes the reconstruction loss (MSE) between input and reconstructed data.
+        generate_samples(num_samples): Generates new data samples from the latent space.
+        infer(x): Performs inference, reconstructing given input and generating new samples.
+
+    Example:
+        >>> encoder = MyEncoder()
+        >>> decoder = MyDecoder()
+        >>> latent_dim = 10
+        >>> vae_module = VAEPyroModule(encoder, decoder, latent_dim)
+        >>> x = torch.randn(64, 1, 28, 28)  # Example batch of data
+        >>> reconstructed_x, generated_x = vae_module.infer(x)
+    """
+
     def __init__(self, encoder, decoder, latent_dim):
         super().__init__()
         self.encoder = encoder
@@ -32,6 +58,13 @@ class VAEPyroModule(PyroModule):
             "cuda" if torch.cuda.is_available() else "cpu")
 
     def model(self, x):
+        """
+        Defines the generative model, specifying the prior distribution over the latent space and 
+        the likelihood of the data given latent variables.
+
+        Args:
+            x (torch.Tensor): Input data tensor.
+        """
         # Ensure the input tensor is on the correct device
         x = x.to(self.device)
         pyro.module("decoder", self.decoder)
@@ -46,7 +79,13 @@ class VAEPyroModule(PyroModule):
             pyro.sample("obs", obs_dist, obs=x)
 
     def guide(self, x):
-        # Ensure the input tensor is on the correct device
+        """
+        Defines the variational guide (approximate posterior) for inference, specifying how to sample
+        latent variables given the observed data.
+
+        Args:
+            x (torch.Tensor): Input data tensor.
+        """
         x = x.to(self.device)
         pyro.module("encoder", self.encoder)
         with pyro.plate("data", x.size(0)):
@@ -56,8 +95,18 @@ class VAEPyroModule(PyroModule):
             z_scale = torch.exp(0.5 * z_logvar)
             pyro.sample("latent", dist.Normal(z_loc, z_scale).to_event(1))
 
-
     def reconstruct_img(self, x):
+        """
+        Reconstructs the input data by encoding it into the latent space and 
+        then decoding it back to the data space.
+
+        Args:
+            x (torch.Tensor): Input data tensor.
+
+        Returns:
+            torch.Tensor: Reconstructed data tensor.
+        """
+
         hidden = self.encoder(x)
         z_loc, z_logvar = hidden[:,
                                  :self.latent_dim], hidden[:, self.latent_dim:]
@@ -68,6 +117,15 @@ class VAEPyroModule(PyroModule):
         return loc_img
 
     def reconstruction_loss(self, x):
+        """
+        Calculates the reconstruction loss (MSE) between the input data and its reconstruction.
+
+        Args:
+            x (torch.Tensor): Input data tensor.
+
+        Returns:
+            torch.Tensor: The MSE reconstruction loss.
+        """
         # Reconstruct the images
         reconstructed_x = self.reconstruct_img(x)
         # Calculate MSE as the reconstruction loss
@@ -76,6 +134,16 @@ class VAEPyroModule(PyroModule):
         return loss
 
     def generate_samples(self, num_samples=1):
+        """
+        Generates new data samples from the latent space by sampling from the prior distribution
+        and decoding the sampled latent variables.
+
+        Args:
+            num_samples (int, optional): Number of samples to generate. Defaults to 1.
+
+        Returns:
+            torch.Tensor: Generated data samples.
+        """
         # Generate new data samples from the learned latent space
         with torch.no_grad():
             z = torch.randn(num_samples, self.latent_dim)
@@ -83,13 +151,54 @@ class VAEPyroModule(PyroModule):
             return generated_x
 
     def infer(self, x):
+        """
+        Performs inference by reconstructing the input data and generating new data samples. 
+        This function combines reconstruction and sample generation in one step.
+
+        Args:
+            x (torch.Tensor): Input data tensor to be reconstructed.
+
+        Returns:
+            tuple: A tuple containing reconstructed data and generated data samples.
+        """
         # Perform inference by reconstructing given input and generating new samples
         reconstructed_x = self.reconstruct_img(x)
         generated_x = self.generate_samples(num_samples=x.size(0))
         return reconstructed_x, generated_x
 
 
+# class VAEModule(BaseModule):
 class VAEModule(BaseModule):
+    """
+    A PyTorch Lightning module for training and evaluating a Variational Autoencoder (VAE) using Pyro.
+
+    Attributes:
+        encoder (nn.Module): The encoder network.
+        decoder (nn.Module): The decoder network.
+        latent_dim (int): Dimensionality of the latent space.
+        optimizer_constructor (Type[Optimizer]): The optimizer class to be used for training.
+        optimizer_params (Dict[str, Any]): Parameters to initialize the optimizer.
+        pyro_loss_function (Type[ELBO]): The Pyro loss function class (e.g., Trace_ELBO).
+        scheduler_constructor (Optional[Type[_LRScheduler]]): The learning rate scheduler class.
+        scheduler_params (Optional[Dict[str, Any]]): Parameters to initialize the scheduler.
+
+    Methods:
+        training_step(batch, batch_idx): Performs a single training step.
+        validation_step(batch, batch_idx): Performs a single validation step.
+        on_train_epoch_end(): Called at the end of the training epoch to update the learning rate scheduler.
+
+    Example:
+        >>> encoder = MyEncoder()
+        >>> decoder = MyDecoder()
+        >>> latent_dim = 10
+        >>> optimizer_params = {'lr': 1e-3}
+        >>> scheduler_params = {'step_size': 10, 'gamma': 0.5}
+        >>> vae = VAEModule(encoder, decoder, latent_dim, optim.Adam, optimizer_params, \
+            Trace_ELBO, StepLR, scheduler_params)
+        >>> trainer = pl.Trainer()
+        >>> trainer.fit(vae, train_dataloader, val_dataloader)
+    """
+
     def __init__(
         self,
         encoder: nn.Module,
@@ -138,14 +247,20 @@ class VAEModule(BaseModule):
                        self.scheduler, loss=Trace_ELBO())
 
         # Disable automatic optimization
-        self.automatic_optimization = False
-
-        # self.device = torch.device(
-        #     "cuda" if torch.cuda.is_available() else "cpu")
-
-        # print(self.device)
+        self.automatic_optimization = False  # svi will take care of this
 
     def training_step(self, batch, batch_idx):
+        """
+        Executes the training step for a single batch.
+
+        Args:
+            batch (tuple): The batch of data. First element is the data tensor, 
+            second element can be the target tensor.
+            batch_idx (int): The index of the batch in the dataset.
+
+        Returns:
+            dict: A dictionary with the ELBO loss ('loss') and reconstruction loss ('rec_loss').
+        """
         x, _ = batch
         x = x.to(self.vae.device)
         elbo_loss = self.svi.step(x)
@@ -162,6 +277,18 @@ class VAEModule(BaseModule):
         return {'loss': elbo_loss_tensor, 'rec_loss': rec_loss}
 
     def validation_step(self, batch, batch_idx):
+        """
+        Executes the validation step for a single batch.
+
+        Args:
+            batch (tuple): The batch of data. First element is the data tensor, 
+            second element can be the target tensor.
+            batch_idx (int): The index of the batch in the dataset.
+
+        Returns:
+            dict: A dictionary with the validation ELBO loss ('val_loss') and 
+            validation reconstruction loss ('rec_loss').
+        """
         x, _ = batch
         # Evaluate the ELBO loss
         elbo_loss = self.svi.evaluate_loss(x)
@@ -176,5 +303,8 @@ class VAEModule(BaseModule):
         return {'val_loss': elbo_loss, 'rec_loss': rec_loss}
 
     def on_train_epoch_end(self):
+        """
+        Hook called at the end of a training epoch. Here, we step the learning rate scheduler.
+        """
         if self.scheduler:
             self.scheduler.step()

@@ -22,6 +22,52 @@ from .base_class_module import BaseModule
 
 
 class HSIClassificationModule(BaseModule):
+    """
+    A PyTorch Lightning module for Hyperspectral Image (HSI) Classification tasks. This module encapsulates 
+    the neural network model, loss function, and evaluation metrics for a classification task.
+
+    Attributes:
+        net (torch.nn.Module): The neural network model used for classification.
+        loss_fn (torch.nn.Module): The loss function. Default is `torch.nn.functional.cross_entropy`.
+        num_classes (int, optional): The number of classes in the classification task. Default is None.
+        custom_metrics (dict, optional): A dictionary of custom metrics (name: metric) to be tracked during training/validation.
+
+    Example:
+        >>> from torch import nn
+        >>> from torch.nn import functional as F
+        >>> from pytorch_lightning.metrics import Accuracy
+        >>> from deephsi.models import HSIClassificationModule
+        >>>
+        >>> # Define a simple neural network for classification
+        >>> class SimpleNet(nn.Module):
+        ...     def __init__(self, num_classes):
+        ...         super(SimpleNet, self).__init__()
+        ...         self.fc1 = nn.Linear(1024, 512)
+        ...         self.fc2 = nn.Linear(512, num_classes)
+        ...
+        ...     def forward(self, x):
+        ...         x = F.relu(self.fc1(x))
+        ...         x = self.fc2(x)
+        ...         return x
+        >>>
+        >>> net = SimpleNet(num_classes=10)
+        >>> custom_metrics = {'accuracy': Accuracy()}
+        >>>
+        >>> # Initialize the HSIClassificationModule with the network, custom loss function, and metrics
+        >>> module = HSIClassificationModule(net=net, loss_fn=F.cross_entropy, num_classes=10, custom_metrics=custom_metrics)
+        >>>
+        >>> # Example usage with a PyTorch Lightning Trainer
+        >>> # trainer = pl.Trainer(max_epochs=10)
+        >>> # trainer.fit(module, train_dataloader, val_dataloader)
+
+    Args:
+        net (torch.nn.Module): The neural network model for classification.
+        loss_fn (torch.nn.Module): The loss function for the classification task. Defaults to `torch.nn.functional.cross_entropy`.
+        num_classes (Optional[int]): The number of unique classes in the dataset. Required for certain metrics. Defaults to None.
+        custom_metrics (Optional[Dict[str, Metric]]): Custom metrics to be tracked during training/validation. Defaults to None.
+        **kwargs: Additional keyword arguments for the BaseModule, such as optimizer and scheduler configurations.
+    """
+
     def __init__(
         self,
         net: torch.nn.Module,
@@ -30,6 +76,8 @@ class HSIClassificationModule(BaseModule):
         custom_metrics: Optional[Dict[str, Metric]] = None,
         **kwargs,  # kwargs will include optimizer and scheduler among other possible arguments
     ):
+        # Implementation omitted for brevity.
+
         # Pass kwargs to BaseModule, which includes optimizer and scheduler
         super().__init__(**kwargs)
 
@@ -82,7 +130,25 @@ class HSIClassificationModule(BaseModule):
     def _model_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor]
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        # x: [batch_size, channels, height, width], y: [batch_size]
+        """
+        Private method to process a single batch through the model during training or validation.
+
+        This method is responsible for the forward pass, computing the loss, and predicting the class labels.
+        It is intended to be used internally within the class during the training and validation steps.
+
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): A tuple containing a tensor of input data `x` and a tensor
+                of corresponding true labels `y`. The input tensor `x` is expected to have the shape
+                [batch_size, channels, height, width], and the label tensor `y` is expected to have the shape [batch_size].
+
+        Returns:
+            loss (torch.Tensor): The computed loss value as a result of comparing the model's predictions to the true labels.
+            preds (torch.Tensor): The predicted class labels for the input data. Shape: [batch_size].
+            y (torch.Tensor): The tensor of true labels provided in the input. Shape: [batch_size].
+
+        Note:
+            This method is an internal utility function and should not be called directly from outside the class.
+        """
         x, y = batch
 
         print(type(x))
