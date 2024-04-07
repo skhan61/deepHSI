@@ -28,15 +28,12 @@ class VAEPyroModule(PyroModule):
         self.encoder = encoder
         self.decoder = decoder
         self.latent_dim = latent_dim
-        self.use_cuda = torch.cuda.is_available()
-        if self.use_cuda:
-            self.cuda()  # Move the entire module's parameters and buffers to the GPU
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
 
     def model(self, x):
-        # If CUDA is available, ensure the input tensor is on GPU
-        if self.use_cuda:
-            x = x.cuda()
-
+        # Ensure the input tensor is on the correct device
+        x = x.to(self.device)
         pyro.module("decoder", self.decoder)
         with pyro.plate("data", x.size(0)):
             z_prior = dist.Normal(torch.zeros(x.size(0), self.latent_dim).to(x.device),
@@ -49,10 +46,8 @@ class VAEPyroModule(PyroModule):
             pyro.sample("obs", obs_dist, obs=x)
 
     def guide(self, x):
-        # If CUDA is available, ensure the input tensor is on GPU
-        if self.use_cuda:
-            x = x.cuda()
-
+        # Ensure the input tensor is on the correct device
+        x = x.to(self.device)
         pyro.module("encoder", self.encoder)
         with pyro.plate("data", x.size(0)):
             hidden = self.encoder(x)
@@ -61,10 +56,8 @@ class VAEPyroModule(PyroModule):
             z_scale = torch.exp(0.5 * z_logvar)
             pyro.sample("latent", dist.Normal(z_loc, z_scale).to_event(1))
 
-    def reconstruct_img(self, x):
-        if self.use_cuda:
-            x = x.cuda()
 
+    def reconstruct_img(self, x):
         hidden = self.encoder(x)
         z_loc, z_logvar = hidden[:,
                                  :self.latent_dim], hidden[:, self.latent_dim:]
@@ -73,6 +66,27 @@ class VAEPyroModule(PyroModule):
         z = z_loc + epsilon * z_scale
         loc_img = self.decoder(z)
         return loc_img
+
+    def reconstruction_loss(self, x):
+        # Reconstruct the images
+        reconstructed_x = self.reconstruct_img(x)
+        # Calculate MSE as the reconstruction loss
+        loss = torch.nn.functional.mse_loss(
+            reconstructed_x, x, reduction='sum')
+        return loss
+
+    def generate_samples(self, num_samples=1):
+        # Generate new data samples from the learned latent space
+        with torch.no_grad():
+            z = torch.randn(num_samples, self.latent_dim)
+            generated_x = self.decoder(z)
+            return generated_x
+
+    def infer(self, x):
+        # Perform inference by reconstructing given input and generating new samples
+        reconstructed_x = self.reconstruct_img(x)
+        generated_x = self.generate_samples(num_samples=x.size(0))
+        return reconstructed_x, generated_x
 
 
 class VAEModule(BaseModule):
@@ -97,7 +111,9 @@ class VAEModule(BaseModule):
         )
 
         pyro.enable_validation(True)
-        self.vae = VAEPyroModule(encoder, decoder, latent_dim)
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.vae = VAEPyroModule(encoder, decoder, latent_dim).to(device)
 
         # Assuming optimizer_constructor is passed as an argument to your function or class
         optimizer_name = optimizer_constructor.__name__
@@ -124,21 +140,41 @@ class VAEModule(BaseModule):
         # Disable automatic optimization
         self.automatic_optimization = False
 
+        # self.device = torch.device(
+        #     "cuda" if torch.cuda.is_available() else "cpu")
+
+        # print(self.device)
+
     def training_step(self, batch, batch_idx):
         x, _ = batch
+        x = x.to(self.vae.device)
         elbo_loss = self.svi.step(x)
+
+        # Additionally, calculate the reconstruction loss
+        rec_loss = self.vae.reconstruction_loss(x)
+        self.log('train_reconstruction_loss', rec_loss,
+                 on_step=True, on_epoch=True, prog_bar=True)
+
+        # Convert ELBO loss to tensor and log it
         elbo_loss_tensor = torch.tensor(
             elbo_loss, dtype=torch.float32, device=self.device)
         self.log('train_loss', elbo_loss_tensor)
-        return {'loss': elbo_loss_tensor}
+        return {'loss': elbo_loss_tensor, 'rec_loss': rec_loss}
+
+    def validation_step(self, batch, batch_idx):
+        x, _ = batch
+        # Evaluate the ELBO loss
+        elbo_loss = self.svi.evaluate_loss(x)
+
+        # Additionally, calculate the reconstruction loss
+        rec_loss = self.vae.reconstruction_loss(x)
+        self.log('val_reconstruction_loss', rec_loss,
+                 on_step=True, on_epoch=True, prog_bar=True)
+
+        self.log('val_loss', elbo_loss, on_step=True,
+                 on_epoch=True, prog_bar=True)
+        return {'val_loss': elbo_loss, 'rec_loss': rec_loss}
 
     def on_train_epoch_end(self):
         if self.scheduler:
             self.scheduler.step()
-
-    def validation_step(self, batch, batch_idx):
-        x, _ = batch
-        elbo_loss = self.svi.evaluate_loss(x)
-        self.log('val_loss', elbo_loss, on_step=True,
-                 on_epoch=True, prog_bar=True)
-        return {'val_loss': elbo_loss}
