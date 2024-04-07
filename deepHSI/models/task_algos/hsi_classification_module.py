@@ -84,6 +84,8 @@ class HSIClassificationModule(BaseModule):
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         # x: [batch_size, channels, height, width], y: [batch_size]
         x, y = batch
+
+        print(type(x))
         # # Check input and label shapes
         # print(f"x shape: {x.shape}, y shape: {y.shape}")
 
