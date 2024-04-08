@@ -1,0 +1,35 @@
+# model.yaml
+_target_: deepHSI.models.hsi_classification_module.HSIClassificationModule
+
+net: # This sets the default but allows override
+ _target_: deepHSI.models.architectures.HSIFCModel
+ input_channels: 200
+ patch_size: 5
+ dropout: true
+ n_classes: 17
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 0.001
+  weight_decay: 0.0
+
+scheduler: null
+num_classes: 17
+
+custom_metrics:
+  precision:
+    _target_: torchmetrics.Precision
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'
+  recall:
+    _target_: torchmetrics.Recall
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'
+  f1:
+    _target_: torchmetrics.F1Score
+    num_classes: 17
+    average: 'macro'
+    task: 'multiclass'

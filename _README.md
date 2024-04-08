@@ -517,7 +517,7 @@ All PyTorch Lightning modules are dynamically instantiated from module paths spe
 _target_: deepHSI.models.mnist_model.MNISTLitModule
 lr: 0.001
 net:
-  _target_: deepHSI.models.components.simple_dense_net.SimpleDenseNet
+  _target_: deepHSI.models.architectures.simple_dense_net.SimpleDenseNet
   input_size: 784
   lin1_size: 256
   lin2_size: 256

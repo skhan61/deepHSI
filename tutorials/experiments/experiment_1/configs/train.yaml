@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - _self_
+  # - data: null  # Specify your data module configuration here
+  - model: model
+  - paths: default
+
+tags: "exp"
+task_name: "train"
+train: True
+test: False
+ckpt_path: '${hydra:runtime.cwd}/model.ckpt'
+seed: 12345  # Seed for reproducibility

@@ -4,7 +4,7 @@ defaults:
   - model_summary
   - rich_progress_bar
   - _self_
-  - custom_callback
+  # - custom_callback
 
 model_checkpoint:
   dirpath: ${paths.output_dir}/checkpoints
@@ -16,7 +16,7 @@ model_checkpoint:
 
 early_stopping:
   monitor: "val/f1"
-  patience: 100
+  patience: 20
   mode: "max"
 
 model_summary:
