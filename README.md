@@ -56,6 +56,7 @@ Begin by organizing your hyperspectral imaging data. `deepHSI` offers a robust f
 - **Built-in HSI Dataset Support**: `deepHSI` offers pre-configured support for a wide array of public hyperspectral imaging datasets in both remote sensing and medical imaging domains. This feature allows you to quickly engage in experiments and assessments with your models on established HSI datasets, facilitating immediate research and development progress.
 
 - **Custom Dataset Class**: Design your dataset as a subclass of [PyTorch's Dataset](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html). For guidance, refer to the structure outlined in [deepHSI.datamodule.HyperspectralDataset](deepHSI/datamodule/hyperspectral_datamodule.py).
+
 - **Data Module** : Utilize [PyTorch Lightning's DataModule](https://lightning.ai/docs/pytorch/stable/data/datamodule.html) to structure your training, validation, and testing data splits efficiently. A template can be found in [deepHSI.datamodule.BaseHyperspectralDataModule](deepHSI/datamodule/hyperspectral_datamodule.py), which serves as a practical example for organizing hyperspectral data.
 
 Through these steps, `deepHSI` ensures a smooth integration and handling of your hyperspectral imaging datasets, allowing for a streamlined workflow from data preprocessing to model training.
@@ -74,7 +75,7 @@ For a hands-on introduction and detailed guidance on using our architectures and
 
 - [Tutorial 01: Getting Started](tutorials/notebooks/Tutorial-01.ipynb)
 - [Tutorial 02: VAE](tutorials/notebooks/Tutorial-02.ipynb)
-  
+
 ## **Contributing**
 
 Contributions are welcome! Please refer to the [Contributing Guidelines](CONTRIBUTING.md) for more details.

@@ -11,17 +11,18 @@ import torch
 from torch.utils.data import DataLoader, Dataset, random_split
 
 # from deepHSI.datamodule import HyperspectralDataset
-from deepHSI.datamodule.components.utils import (download_dataset,
-                                                 download_from_zenodo,
-                                                 load_dataset)
+from deepHSI.datamodule.components.utils import (
+    download_dataset,
+    download_from_zenodo,
+    load_dataset,
+)
 
 #    """Generic class for a hyperspectral scene."""
 
 
 class HyperspectralDataset(Dataset):
-    """
-    Provides a PyTorch dataset for hyperspectral images, facilitating the extraction and use of spatial
-    patches and their corresponding labels for model training and evaluation.
+    """Provides a PyTorch dataset for hyperspectral images, facilitating the extraction and use of
+    spatial patches and their corresponding labels for model training and evaluation.
 
     Hyperspectral images are 3D data cubes with two spatial dimensions and one spectral dimension.
     This class enables the extraction of small 3D patches from these data cubes for deep learning purposes,
@@ -88,8 +89,8 @@ class HyperspectralDataset(Dataset):
         # self.transform = transform
 
         # Handling transform
-        if isinstance(transform, str) and transform.lower() != 'none':
-            module_name, func_name = transform.rsplit('.', 1)
+        if isinstance(transform, str) and transform.lower() != "none":
+            module_name, func_name = transform.rsplit(".", 1)
             module = importlib.import_module(module_name)
             # print()
             # print(module)
@@ -236,8 +237,7 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         self.batch_size = self.hyperparams["batch_size"]
 
     def setup_datasets(self, img, gt, hyperparams):
-        self.dataset = HyperspectralDataset(
-            img, gt, transform=self.transform, **hyperparams)
+        self.dataset = HyperspectralDataset(img, gt, transform=self.transform, **hyperparams)
 
         # Adjust the splitting to include test data
         train_size = int(0.7 * len(self.dataset))
@@ -249,8 +249,7 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         self.train_dataset, test_val_dataset = random_split(
             self.dataset, [train_size, test_val_size]
         )
-        self.val_dataset, self.test_dataset = random_split(
-            test_val_dataset, [val_size, test_size])
+        self.val_dataset, self.test_dataset = random_split(test_val_dataset, [val_size, test_size])
 
     def train_dataloader(self):
         """Creates a DataLoader for the training dataset.
@@ -299,8 +298,7 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
         This method should be implemented by subclasses to handle dataset-specific preparation
         steps such as downloading or extracting data.
         """
-        raise NotImplementedError(
-            "This method should be implemented by subclasses.")
+        raise NotImplementedError("This method should be implemented by subclasses.")
 
     def setup(self, stage=None):
         """Placeholder method for setup logic.
@@ -313,5 +311,4 @@ class BaseHyperspectralDataModule(L.LightningDataModule):
                                    'test', or 'predict'. The stage can be used to differentiate which datasets
                                    need to be setup in the current context.
         """
-        raise NotImplementedError(
-            "This method should be implemented by subclasses.")
+        raise NotImplementedError("This method should be implemented by subclasses.")

@@ -9,17 +9,17 @@ import pytorch_lightning as pl
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
-from deepHSI.datamodule import (BaseHyperspectralDataModule,
-                                HyperspectralDataset)
-from deepHSI.datamodule.components.utils import (download_dataset,
-                                                 download_from_zenodo,
-                                                 load_dataset)
+from deepHSI.datamodule import BaseHyperspectralDataModule, HyperspectralDataset
+from deepHSI.datamodule.components.utils import (
+    download_dataset,
+    download_from_zenodo,
+    load_dataset,
+)
 
 
 class IndianPinesDataModule(BaseHyperspectralDataModule):
     def __init__(self, data_dir, transform=None, hyperparams=None):
-        """
-        Initializes the IndianPinesDataModule with the provided parameters.
+        """Initializes the IndianPinesDataModule with the provided parameters.
 
         Args:
             data_dir (str): The directory path for the dataset.

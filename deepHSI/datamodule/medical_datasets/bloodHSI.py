@@ -9,18 +9,18 @@ import pytorch_lightning as pl
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
-from deepHSI.datamodule import (BaseHyperspectralDataModule,
-                                HyperspectralDataset)
-from deepHSI.datamodule.components.utils import (download_dataset,
-                                                 download_from_zenodo,
-                                                 load_dataset)
+from deepHSI.datamodule import BaseHyperspectralDataModule, HyperspectralDataset
+from deepHSI.datamodule.components.utils import (
+    download_dataset,
+    download_from_zenodo,
+    load_dataset,
+)
 
 
 class BloodDetectionHSIDataModule(BaseHyperspectralDataModule):
-    """
-    A data module for handling the "Blood Detection in Hyperspectral Images" dataset within a
-    PyTorch Lightning workflow. This dataset is aimed at facilitating the development of
-    machine learning algorithms for hyperspectral blood detection.
+    """A data module for handling the "Blood Detection in Hyperspectral Images" dataset within a
+    PyTorch Lightning workflow. This dataset is aimed at facilitating the development of machine
+    learning algorithms for hyperspectral blood detection.
 
     The dataset consists of 14 hyperspectral images capturing mock-up scenes with blood and
     visually similar substances under varying conditions. It serves as a challenging testbed for

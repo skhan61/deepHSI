@@ -9,16 +9,16 @@ import pytorch_lightning as pl
 import spectral.io.envi as envi
 from torch.utils.data import DataLoader, random_split
 
-from deepHSI.datamodule import (BaseHyperspectralDataModule,
-                                HyperspectralDataset)
-from deepHSI.datamodule.components.utils import (download_dataset,
-                                                 download_from_zenodo,
-                                                 load_dataset)
+from deepHSI.datamodule import BaseHyperspectralDataModule, HyperspectralDataset
+from deepHSI.datamodule.components.utils import (
+    download_dataset,
+    download_from_zenodo,
+    load_dataset,
+)
 
 
 class BotswanaDataModule(BaseHyperspectralDataModule):
-    """
-    A PyTorch Lightning DataModule for the Botswana hyperspectral image classification dataset.
+    """A PyTorch Lightning DataModule for the Botswana hyperspectral image classification dataset.
 
     The Botswana dataset consists of hyperspectral remote sensing images acquired by the NASA EO-1 satellite
     over the Okavango Delta, Botswana. The dataset features a diverse set of land cover types and has been
@@ -53,8 +53,7 @@ class BotswanaDataModule(BaseHyperspectralDataModule):
     """
 
     def __init__(self, data_dir, transform=None, hyperparams=None):
-        """
-        Initializes the BotswanaDataModule with the provided parameters.
+        """Initializes the BotswanaDataModule with the provided parameters.
 
         Args:
             data_dir (str): The directory path for the dataset.

@@ -161,10 +161,10 @@ def test_hsi_rotate(synthetic_hsi_patch):
 # Assuming synthetic_hsi_patch fixture is already defined as provided in the original code
 
 def test_hsi_spectral_noise(synthetic_hsi_patch):
-    """
-    Test HSISpectralNoise to ensure Gaussian noise is added to the patch.
-    This test verifies that after adding noise, the mean and std of the patch
-    are within expected ranges, considering the noise parameters.
+    """Test HSISpectralNoise to ensure Gaussian noise is added to the patch.
+
+    This test verifies that after adding noise, the mean and std of the patch are within expected
+    ranges, considering the noise parameters.
     """
     mean = 0.0
     std = 0.01  # Noise standard deviation
@@ -180,10 +180,10 @@ def test_hsi_spectral_noise(synthetic_hsi_patch):
 
 
 def test_hsi_spectral_shift(synthetic_hsi_patch):
-    """
-    Test HSISpectralShift to ensure spectral bands are shifted correctly.
-    This test verifies that after shifting, the spectral bands are rolled
-    as per the shift value, and the relative order of bands is maintained.
+    """Test HSISpectralShift to ensure spectral bands are shifted correctly.
+
+    This test verifies that after shifting, the spectral bands are rolled as per the shift value,
+    and the relative order of bands is maintained.
     """
     shift = 2  # Number of places to shift
     hsi_spectral_shift = HSISpectralShift(shift=shift)
