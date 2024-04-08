@@ -7,7 +7,7 @@ import pytest
 import scipy.stats
 import torch
 
-from deepHSI.datamodule.components import HyperspectralDataset
+from deepHSI.datamodule import HyperspectralDataset
 from deepHSI.datamodule.components.utils import *
 from deepHSI.datamodule.transforms import *
 

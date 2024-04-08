@@ -12,15 +12,15 @@
 
 ## **Overview**
 
-`deepHSI` is an advanced toolbox designed for leveraging deep learning in the analysis and processing of hyperspectral images. Developed with PyTorch Lightning and configured through Hydra, it offers a scalable and modular framework for researchers and practitioners working with hyperspectral data.
+`deepHSI` is a comprehensive toolbox for applying deep learning techniques to hyperspectral image analysis and processing. It is built on top of [PyTorch Lightning](https://lightning.ai/) and [Pyro](https://pyro.ai/), providing a scalable and flexible framework that facilitates the development and experimentation of models for those working with hyperspectral datasets. The design of `deepHSI` emphasizes modularity and ease of use, enabling researchers and practitioners to efficiently implement, train, and evaluate a wide range of deep learning architectures tailored to their specific hyperspectral imaging tasks.
 
-## **Features**
+<!-- ## **Features**
 
 - **Modular Architecture**: Easily integrate new models and datasets.
 - **Flexible Configuration**: Utilize Hydra configurations for flexible experiment setups.
 - **Multi-GPU Support**: Scale your training to multi-GPU settings for faster processing.
 - **Pre-built Modules**: Access a collection of pre-built modules tailored for HSI tasks.
-- **Extensive Documentation**: Benefit from detailed documentation and examples.
+- **Extensive Documentation**: Benefit from detailed documentation and examples. -->
 
 ## **Installation**
 
@@ -51,91 +51,30 @@ The `deepHSI` toolbox streamlines the process of using deep learning for hypersp
 
 ### 1. Data Handling
 
-Start by preparing your hyperspectral imaging data. `deepHSI` provides a flexible framework for integrating custom datasets.
+Begin by organizing your hyperspectral imaging data. `deepHSI` offers a robust framework to seamlessly incorporate both custom and public datasets.
 
-- **Custom Dataset Class**: Implement your dataset as a PyTorch `Dataset`. See the [data/mnist_datamodule.py](deepHSI.data/mnist_datamodule.py) as an example.
-- **Data Module**: Leverage PyTorch Lightning's `DataModule` to organize your training, validation, and test data splits. Refer to our [MNIST DataModule](deepHSI.data/mnist_datamodule.py) for a template.
+- **Built-in HSI Dataset Support**: `deepHSI` offers pre-configured support for a wide array of public hyperspectral imaging datasets in both remote sensing and medical imaging domains. This feature allows you to quickly engage in experiments and assessments with your models on established HSI datasets, facilitating immediate research and development progress.
+
+- **Custom Dataset Class**: Design your dataset as a subclass of [PyTorch's Dataset](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html). For guidance, refer to the structure outlined in [deepHSI.datamodule.HyperspectralDataset](deepHSI/datamodule/hyperspectral_datamodule.py).
+- **Data Module** : Utilize [PyTorch Lightning's DataModule](https://lightning.ai/docs/pytorch/stable/data/datamodule.html) to structure your training, validation, and testing data splits efficiently. A template can be found in [deepHSI.datamodule.BaseHyperspectralDataModule](deepHSI/datamodule/hyperspectral_datamodule.py), which serves as a practical example for organizing hyperspectral data.
+
+Through these steps, `deepHSI` ensures a smooth integration and handling of your hyperspectral imaging datasets, allowing for a streamlined workflow from data preprocessing to model training.
 
 ### 2. Model Development
 
-Develop your model architecture tailored for hyperspectral data analysis.
+`deepHSI` is equipped with a comprehensive suite for developing advanced models tailored to hyperspectral data analysis. It offers a variety of SOTA architectures for HSI and task-specific modules to cater to both standard and complex HSI processing tasks.
 
-- **Defining Models**: Create models by extending `torch.nn.Module`. Check out [deepHSI.models/mnist_module.py](deepHSI.models/mnist_module.py) for a basic structure.
-- **Configuration**: Utilize Hydra to configure model parameters dynamically. Example configuration can be found in [configs/model/mnist.yaml](configs/model/mnist.yaml).
+- **architectures**: This repository encompasses leading-edge architectures for Hyperspectral Imaging (HSI), providing a robust foundation for researchers to test and innovate with their datasets using the most advanced models in the field of HSI.
 
-### 3. Testing and Validation
+- **task_algos**: In `task_algos,` we have pre-implemented various tasks such as classification and Variational AutoEncoders (VAEs) using the PyTorch Lightning framework. For VAE development, we also integrate `Pyro`.
 
-Ensure the robustness of your models and data handling through thorough testing.
+# **Tutorial**
 
-- **Unit Tests**: Write tests for your custom dataset classes and model functionalities.
-- **Validation**: Use the validation split to tune model hyperparameters and prevent overfitting.
+For a hands-on introduction and detailed guidance on using our architectures and models, please refer to our tutorial notebook:
 
-### 4. Training Configuration
-
-Configure your training process with Hydra to seamlessly switch between different setups.
-
-- **Main Configuration**: Centralize your training configurations in [configs/train.yaml](configs/train.yaml). This includes model selection, data module parameters, training routines, and more.
-- **Experiment-Specific Configs**: For specific experiments, create override configurations in [configs/experiment](configs/experiment). This allows for easy experimentation with different hyperparameters.
-
-### 5. Running Experiments
-
-Execute your training runs with the flexibility to switch between configurations and models.
-
-- **Training**: Initiate training with `python train.py`. Override configurations as needed directly via command line arguments, e.g., `python train.py model=your_model`.
-- **Hyperparameter Tuning**: Leverage Hydra's capabilities for hyperparameter optimization. Configure your sweeps in [configs/hparams_search](configs/hparams_search).
-
-### 6. Evaluation
-
-After training, evaluate your models on the test dataset to assess their performance.
-
-- **Evaluation Script**: Use the provided evaluation script `deepHSI.eval.py` with the desired model checkpoint to evaluate on the test set.
-
-This workflow ensures a modular and configurable approach to deep learning with hyperspectral imaging, making `deepHSI` a versatile toolbox for researchers and practitioners.
-
-## **Getting Started**
-
-### Training a Model
-
-To train a model with the default configuration, execute:
-
-```shell
-python deepHSI.train.py
-```
-
-### Custom Configuration
-
-To customize the training parameters or use an alternative configuration:
-
-```shell
-python deepHSI.train.py model=my_custom_model data=my_custom_dataset
-```
-
-### Evaluation
-
-Evaluate a model on the test dataset:
-
-```shell
-python deepHSI.evaluate.py model=my_custom_model checkpoint=path/to/model.ckpt
-```
-
-## **Advanced Usage**
-
-### Hyperparameter Tuning
-
-Conduct hyperparameter tuning using Hydra's multi-run capability:
-
-```shell
-python deepHSI.train.py -m hparams_search=my_hyperparameter_search.yaml
-```
-
-### Distributed Training
-
-Train on multiple GPUs using Distributed Data Parallel (DDP):
-
-```shell
-python deepHSI.train.py trainer=ddp trainer.gpus=4
-```
-
+- [Tutorial 01: Getting Started](tutorials/notebooks/Tutorial-01.ipynb)
+- [Tutorial 02: VAE](tutorials/notebooks/Tutorial-02.ipynb)
+  
 ## **Contributing**
 
 Contributions are welcome! Please refer to the [Contributing Guidelines](CONTRIBUTING.md) for more details.
